@@ -1,28 +1,33 @@
 package com.lms.Learning_Managment_System.Controller;
-import com.lms.Learning_Managment_System.Model.course;
-import com.lms.Learning_Managment_System.Model.enrolled_student;
-import com.lms.Learning_Managment_System.Model.lesson;
-import com.lms.Learning_Managment_System.Service.courseService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.stream;
-import static java.util.spi.ToolProvider.findFirst;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.lms.Learning_Managment_System.Model.Question;
+import com.lms.Learning_Managment_System.Model.course;
+import com.lms.Learning_Managment_System.Model.enrolled_student;
+import com.lms.Learning_Managment_System.Model.lesson;
+import com.lms.Learning_Managment_System.Service.courseService;
 
 @RestController
 @RequestMapping("/manage_courses")
@@ -130,4 +135,45 @@ public class Course_Controller {
 
         return ResponseEntity.ok(enrolledStudents);
     }
+
+    @PostMapping("/{courseTitle}/addQuestions")
+    public ResponseEntity<?> addQuestions(@PathVariable("courseTitle") String course_title,
+                                          @RequestBody List<Question> questions) {
+        try {
+            service.addQuestionsToBank(course_title, questions);
+            return new ResponseEntity<>(questions, HttpStatus.OK);
+        }
+        catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Erro on server while adding Questions ", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @GetMapping("/{courseTitle}/questionBank")
+    public ResponseEntity<List<Question>> getQuestionBank(@PathVariable String courseTitle) {
+        List<Question> questions = new ArrayList<>();
+        try {
+            questions = service.getQuestionBank(courseTitle);
+            return new ResponseEntity<>(questions , HttpStatus.OK);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().body(questions);
+    }
+
+    @DeleteMapping("/delete_course/{course_title}")
+    public ResponseEntity<String> deleteCourse(@PathVariable("course_title") String courseTitle) {
+        try {
+            service.deleteCourse(courseTitle);
+            return ResponseEntity.ok("Course '" + courseTitle + "' has been deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
 }

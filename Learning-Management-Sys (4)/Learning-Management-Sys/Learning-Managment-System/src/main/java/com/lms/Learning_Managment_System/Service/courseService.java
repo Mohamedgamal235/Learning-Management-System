@@ -1,6 +1,7 @@
 package com.lms.Learning_Managment_System.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lms.Learning_Managment_System.Model.Question;
 import com.lms.Learning_Managment_System.Model.course;
 import com.lms.Learning_Managment_System.Model.lesson;
 import org.springframework.stereotype.Service;
@@ -81,4 +82,35 @@ public class courseService {
         }
         return null;
     }
+
+    public void addQuestionsToBank(String courseTitle, List<Question> questions) {
+        course course = search_course(courseTitle);
+        if (course == null) {
+            throw new IllegalArgumentException("Course not found.");
+        }
+        course.getQuestionBank().addAll(questions);
+        saveCoursesToFile();
+    }
+
+
+
+    public List<Question> getQuestionBank(String courseTitle){
+        course crs = search_course(courseTitle);
+        if (crs != null) {
+            return crs.getQuestionBank();
+        }
+        throw new IllegalArgumentException("Course not found: " + courseTitle);
+    }
+
+    public void deleteCourse(String courseTitle) {
+        course existingCourse = search_course(courseTitle);
+        if (existingCourse == null) {
+            throw new IllegalArgumentException("Course with title '" + courseTitle + "' does not exist.");
+        }
+
+        // Remove the course
+        courses.removeIf(c -> c.getCourse_title().equalsIgnoreCase(courseTitle));
+        saveCoursesToFile();
+    }
+
 }
