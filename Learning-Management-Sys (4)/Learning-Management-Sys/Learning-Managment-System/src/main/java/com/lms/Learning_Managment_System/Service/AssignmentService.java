@@ -1,9 +1,13 @@
 package com.lms.Learning_Managment_System.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lms.Learning_Managment_System.Model.Assessment;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.lms.Learning_Managment_System.Model.Assignment;
 import com.lms.Learning_Managment_System.Model.assignmentSubmission;
+import com.lms.Learning_Managment_System.Model.course;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,65 +19,49 @@ import java.util.*;
 
 @Service
 public class AssignmentService {
-    private final courseService courseService;
+    @Autowired
+    private courseService courseService;
 
-    private static final String assessmentsFile = "assessments.json";
+    private static final String assignmentsFile = "assignments.json";
     private static final String STORAGE_DIRECTORY = "G:\\Storage";
-    private Map<String, List<Assessment>> assessments = new HashMap<>();
-
-    public AssignmentService(com.lms.Learning_Managment_System.Service.courseService courseService) {
-        this.courseService = courseService;
-        loadAssessmentsFromFile();
+    private Map<String, List<Assignment>> asssignments = new HashMap<>();
+    @Autowired
+    private com.lms.Learning_Managment_System.Controller.student_courses_Controller student_courses_Controller;
+    public AssignmentService() {
+        loadFromJsonFile();
     }
 
-
-    public void addAssignment(String courseTitle, Assignment assignment) {
-        if (courseService.search_course(courseTitle) == null) {
+    public void validateCourse(String courseTitle){
+        course crs = courseService.search_course(courseTitle.toLowerCase());
+        if (crs == null)
             throw new IllegalArgumentException("Course not found.");
-        }
-        assessments.putIfAbsent(courseTitle, new ArrayList<>());
-        assessments.get(courseTitle).add(assignment);
-        saveAssessmentsToFile();
+    }
+    public void addAssignment(String courseTitle, Assignment assignment) {
+        validateCourse(courseTitle);
+        asssignments.putIfAbsent(courseTitle, new ArrayList<>());
+        asssignments.get(courseTitle).add(assignment);
+        saveAssignmentsToFile();
     }
 
 
     public List<Assignment> getAssignments(String courseTitle) {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
-        System.out.println("Fetching assignments for course: " + courseTitle);
-        List<Assignment> assignmentList = new ArrayList<>();
-        List<Assessment> courseAssessments = assessments.getOrDefault(courseTitle, List.of());
-
-        for (Assessment assessment : courseAssessments) {
-            if (assessment instanceof Assignment) {
-                assignmentList.add((Assignment) assessment);
-            }
-        }
-
-        System.out.println("Assignments found: " + assignmentList);
-        return assignmentList;
+        validateCourse(courseTitle);
+        List<Assignment> courseAssignments = asssignments.getOrDefault(courseTitle.toLowerCase(), new ArrayList<>());
+        System.out.println("Assignments for " + courseTitle + ": " + courseAssignments);
+        return courseAssignments;
     }
 
 
     private Assignment getAssignmentById(String courseTitle, String assignmentId) {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
-        List<Assignment> assignments = getAssignments(courseTitle);
-        for (Assignment assignment : assignments) {
-            if (assignment.getAssessmentID().equals(assignmentId)) {
-                return assignment;
-            }
-        }
-        return null;
+        validateCourse(courseTitle);
+        List<Assignment>crsAssignments=asssignments.getOrDefault(courseTitle, new ArrayList<>());
+        return crsAssignments.stream().filter(assignment ->
+                assignment.getAssessmentID().equals(assignmentId)).findFirst().orElseThrow(() -> new IllegalArgumentException("Assignment with ID " + assignmentId + " not found."));
     }
 
 
-    public void saveFile(MultipartFile file, String courseTitle, String assignmentId, String studentId, String studentName) throws IOException {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
+    public void saveFile(MultipartFile file, String courseTitle, String assignmentId, String studentId) throws IOException {
+        validateCourse(courseTitle);
         if(file == null) {
             throw new NullPointerException("File is null");
         }
@@ -91,17 +79,15 @@ public class AssignmentService {
         // Add the file path to the corresponding assignment and associate it with the student
         Assignment assignment = getAssignmentById(courseTitle, assignmentId);
         if (assignment != null) {
-            assignmentSubmission submission=new assignmentSubmission(studentId, studentName, target.getAbsolutePath());
+            assignmentSubmission submission=new assignmentSubmission(studentId, target.getAbsolutePath());
             assignment.addSubmission(submission);
-            saveAssessmentsToFile();
+            saveAssignmentsToFile();
         } else {
             throw new IllegalArgumentException("Assignment not found.");
         }
     }
     public void gradeAssignment(String courseTitle, String assignmentId, String studentId, String grade, String feedback) {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
+        validateCourse(courseTitle);
         Assignment assignment = getAssignmentById(courseTitle, assignmentId);
         if (assignment == null) {
             throw new IllegalArgumentException("Assignment not found.");
@@ -114,13 +100,11 @@ public class AssignmentService {
         }
         submission.get().setGrade(grade);
         submission.get().setFeedback(feedback);
-        saveAssessmentsToFile();
+        saveAssignmentsToFile();
     }
 
     public List<assignmentSubmission> getSubmissionsWithFeedback(String courseTitle, String assignmentId) {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
+        validateCourse(courseTitle);
         Assignment assignment = getAssignmentById(courseTitle, assignmentId);
         if (assignment != null) {
             return assignment.getSubmissions();
@@ -129,9 +113,7 @@ public class AssignmentService {
         }
     }
     public List<assignmentSubmission> trackSubmissionsProgress(String courseTitle, String assignmentId) {
-        if (courseService.search_course(courseTitle)==null) {
-            throw new IllegalArgumentException("Course not found.");
-        }
+        validateCourse(courseTitle);
         Assignment assignment = getAssignmentById(courseTitle, assignmentId);
         if (assignment != null) {
             return assignment.getSubmissions();
@@ -163,34 +145,77 @@ public class AssignmentService {
         progressData.put("completionRate", totalAssignments > 0 ? (gradedAssignments / (double) totalAssignments) * 100 : 0);
         return progressData;
     }
-    private void loadAssessmentsFromFile() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerSubtypes(Assignment.class);
+//    public void loadFromJsonFile(){
+//        ObjectMapper mapper = new ObjectMapper();
+//        try{
+//            File file = new File(assignmentsFile);
+//            if (file.exists())
+//                asssignments = mapper.readValue(file , mapper.getTypeFactory().constructMapType(HashMap.class , String.class , List.class));
+//            else
+//                System.out.println("File does not exist");
+//        }
+//        catch (IOException e){
+//            e.printStackTrace();
+//        }
+//    }
+//    public void saveAssignmentsToFile(){
+//        ObjectMapper mapper = new ObjectMapper();
+//        try{
+//            mapper.writeValue(new File(assignmentsFile) , asssignments);
+//        }
+//        catch (IOException e){
+//            e.printStackTrace();
+//        }
+//    }
+    public void loadFromJsonFile() {
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            File file = new File(assessmentsFile);
-            if (file.exists()) {
-                // Read raw content to check the JSON structure
-                String rawContent = new String(Files.readAllBytes(file.toPath()));
-                System.out.println("Raw JSON content: " + rawContent);
+            File file = new File(assignmentsFile).getAbsoluteFile();
 
-                // Deserialize into a Map with the correct type information
-                assessments = objectMapper.readValue(file,
-                        objectMapper.getTypeFactory().constructMapType(HashMap.class, String.class, List.class));
+            // Add detailed logging
+            System.out.println("Attempting to load file: " + file.getAbsolutePath());
+            System.out.println("File exists: " + file.exists());
+            System.out.println("File is readable: " + file.canRead());
 
-                System.out.println("Assessments loaded: " + assessments);
+            if (file.exists() && file.canRead()) {
+                TypeReference<Map<String, List<Assignment>>> typeRef =
+                        new TypeReference<Map<String, List<Assignment>>>() {};
+
+                // Enable polymorphic deserialization
+                mapper.registerSubtypes(Assignment.class);
+                mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+                asssignments = mapper.readValue(file, typeRef);
+
+                System.out.println("Loaded assignments: " + asssignments);
             } else {
-                System.out.println("File not found: " + assessmentsFile);
+                System.out.println("File cannot be read or does not exist");
+                asssignments = new HashMap<>();
             }
         } catch (IOException e) {
+            System.err.println("Error loading assignments file: " + e.getMessage());
             e.printStackTrace();
+            asssignments = new HashMap<>();
         }
     }
 
-    private void saveAssessmentsToFile() {
-        ObjectMapper objectMapper = new ObjectMapper();
+
+    private void saveAssignmentsToFile() {
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            objectMapper.writeValue(new File(assessmentsFile), assessments);
+            File file = new File(assignmentsFile).getAbsoluteFile();
+
+            // Ensure parent directory exists
+            file.getParentFile().mkdirs();
+
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            mapper.registerSubtypes(Assignment.class);
+
+            mapper.writeValue(file, asssignments);
+
+            System.out.println("Saved assignments to: " + file.getAbsolutePath());
         } catch (IOException e) {
+            System.err.println("Error saving assignments file: " + e.getMessage());
             e.printStackTrace();
         }
     }
