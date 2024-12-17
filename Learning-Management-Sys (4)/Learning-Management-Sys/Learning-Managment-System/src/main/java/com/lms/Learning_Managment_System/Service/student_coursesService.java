@@ -57,8 +57,11 @@ public class student_coursesService {
         try {
             File file = new File(ENROLLED_STUDENTS_FILE);
             if (file.exists()) {
-                List<enrolled_student> enrolledStudents = Arrays.asList(objectMapper.readValue(file, enrolled_student[].class));
-                return enrolledStudents.stream().filter(es -> es.getEnrolled_student_id() == student_id).findFirst().orElse(null);
+                List<enrolled_student> enrolledStudents = new ArrayList<>(Arrays.asList(objectMapper.readValue(file, enrolled_student[].class)));
+                return enrolledStudents.stream()
+                        .filter(es -> es.getEnrolled_student_id() == student_id)
+                        .findFirst()
+                        .orElse(null);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -82,7 +85,7 @@ public class student_coursesService {
         try {
             File file = new File(ENROLLED_STUDENTS_FILE);
             if (file.exists()) {
-                return Arrays.asList(objectMapper.readValue(file, enrolled_student[].class));
+                return new ArrayList<>(Arrays.asList(objectMapper.readValue(file, enrolled_student[].class)));
             }
         } catch (IOException e) {
             e.printStackTrace();

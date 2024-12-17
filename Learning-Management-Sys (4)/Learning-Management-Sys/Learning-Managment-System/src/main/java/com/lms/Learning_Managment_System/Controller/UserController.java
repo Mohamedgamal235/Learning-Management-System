@@ -103,13 +103,14 @@ public class UserController {
         try {
             File file = new File(fileName);
             if (file.exists()) {
-                return Arrays.asList(objectMapper.readValue(file, User[].class));
+                return new ArrayList<>(Arrays.asList(objectMapper.readValue(file, User[].class)));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return new ArrayList<>();
     }
+
 
     private void saveUsersToFile(String fileName, List<User> userList) {
         try {
