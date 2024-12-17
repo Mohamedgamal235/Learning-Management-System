@@ -165,15 +165,5 @@ public class Course_Controller {
         return ResponseEntity.badRequest().body(questions);
     }
 
-    @DeleteMapping("/delete_course/{course_title}")
-    public ResponseEntity<String> deleteCourse(@PathVariable("course_title") String courseTitle) {
-        try {
-            service.deleteCourse(courseTitle);
-            return ResponseEntity.ok("Course '" + courseTitle + "' has been deleted successfully.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-    }
-
 
 }
