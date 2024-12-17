@@ -32,47 +32,70 @@ import com.lms.Learning_Managment_System.Service.courseService;
 @RestController
 @RequestMapping("/manage_courses")
 public class Course_Controller {
+
     @Autowired
     private courseService service;
     @Autowired
     private com.lms.Learning_Managment_System.Service.student_coursesService student_coursesService;
+    @Autowired
+    private UserController userController;
 
-    @PostMapping("/add_course")
-    public String addCourse(@RequestBody course newCourse) {
+
+    @PostMapping("/{instructor_id}/add_course")
+    public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage courses");
+        }
+
         course crs = service.search_course(newCourse.getCourse_title());
         if (crs != null) {
-            return "Course title : " + crs.getCourse_title() + " already exists";
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Course title: " + crs.getCourse_title() + " already exists");
         } else {
             service.addCourse(newCourse);
-            return "Course added successfully. " + (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.";
+            return ResponseEntity.ok("Course added successfully. " + (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.");
         }
     }
 
-    @GetMapping("/view_All_courses")
-    public ResponseEntity<List<course>> viewAllCourses() {
+    @GetMapping("/{instructor_id}/view_All_courses")
+    public ResponseEntity<?> viewAllCourses(@PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage courses");
+        }
         List<course> courses = service.getAllCourses();
         return ResponseEntity.ok(courses);
     }
 
-    @PostMapping("/add_lesson")
-    public ResponseEntity<String> addLesson(@RequestBody lesson newLesson, @RequestParam String course_title) {
+    @PostMapping("/{instructor_id}/add_lesson")
+    public ResponseEntity<String> addLesson(@RequestBody lesson newLesson, @RequestParam String course_title, @PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage lessons");
+        }
         service.addLessonToCourse(course_title, newLesson);
         return ResponseEntity.ok("Lesson added to course: " + course_title);
     }
 
-    @GetMapping("/get_lessons_ofCourse/{course_title}")
-    public ResponseEntity<List<lesson>> getLessonsOfCourse(@PathVariable("course_title") String courseTitle) {
+    @GetMapping("/{instructor_id}/get_lessons_ofCourse/{course_title}")
+    public ResponseEntity<List<lesson>> getLessonsOfCourse(@PathVariable("course_title") String courseTitle, @PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        }
+
         List<lesson> lessons = service.getAllLessonsOfCourse(courseTitle);
         return ResponseEntity.ok(lessons);
     }
 
+
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    @PostMapping("/upload/{courseTitle}")
+    @PostMapping("/{instructor_id}/upload/{courseTitle}")
     public ResponseEntity<String> uploadFileToLesson(@RequestParam("files") List<MultipartFile> files,
                                                      @RequestParam("lessonTitle") String lessonTitle,
-                                                     @PathVariable String courseTitle) {
+                                                     @PathVariable String courseTitle,
+                                                     @PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to upload files");
+        }
         if (files.isEmpty()) {
             return ResponseEntity.badRequest().body("No files selected");
         }
@@ -110,8 +133,11 @@ public class Course_Controller {
         }
     }
 
-    @GetMapping("/view_enrolled_students/{course_title}")
-    public ResponseEntity<?> viewAllEnrolledStudentsInCourse(@PathVariable String course_title) {
+    @GetMapping("/{instructor_id}/view_enrolled_students/{course_title}")
+    public ResponseEntity<?> viewAllEnrolledStudentsInCourse(@PathVariable String course_title,@PathVariable int instructor_id) {
+        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to view enrolled students");
+        }
         List<enrolled_student> enrolledStudentswithcourses = student_coursesService.getStudentsEnrolledInCourse(course_title);
 
         List<Map<String, Object>> enrolledStudents = new ArrayList<>();
@@ -121,13 +147,16 @@ public class Course_Controller {
                 if (enrolledCourse.getCourse_title().equalsIgnoreCase(course_title)) {
                     Map<String, Object> studentInfo = new HashMap<>();
                     studentInfo.put("enrolled_student_id", student.getEnrolled_student_id());
-                    studentInfo.put("enrolled_student_name", student.getEnrolled_student_name());
+                    studentInfo.put("enrolled_student_fname", student.getEnrolled_student_fname());
+                    studentInfo.put("enrolled_student_lname", student.getEnrolled_student_lname());
+                    studentInfo.put("enrolled_student_email", student.getEnrolled_student_email());
 
                     enrolledStudents.add(studentInfo);
                     break;
                 }
             }
         }
+
 
         if (enrolledStudents.isEmpty()) {
             return ResponseEntity.ok("No students are enrolled in the course: " + course_title);
@@ -148,7 +177,7 @@ public class Course_Controller {
         }
         catch (Exception e) {
             e.printStackTrace();
-            return new ResponseEntity<>("Erro on server while adding Questions ", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error on server while adding Questions ", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

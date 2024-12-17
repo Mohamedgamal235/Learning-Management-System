@@ -10,7 +10,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class enrolled_student {
+
     private int enrolled_student_id;
-    private String enrolled_student_name;
+    private String enrolled_student_fname;
+    private String enrolled_student_lname;
+    private String enrolled_student_email;
     private List<course> enrolled_courses = new ArrayList<>();
 }
