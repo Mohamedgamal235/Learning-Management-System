@@ -102,15 +102,6 @@ public class courseService {
         throw new IllegalArgumentException("Course not found: " + courseTitle);
     }
 
-    public void deleteCourse(String courseTitle) {
-        course existingCourse = search_course(courseTitle);
-        if (existingCourse == null) {
-            throw new IllegalArgumentException("Course with title '" + courseTitle + "' does not exist.");
-        }
-
-        // Remove the course
-        courses.removeIf(c -> c.getCourse_title().equalsIgnoreCase(courseTitle));
-        saveCoursesToFile();
-    }
+    
 
 }
