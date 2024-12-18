@@ -20,7 +20,7 @@ public class OTPController {
     @PostMapping("/{StudentId}/request")
     public ResponseEntity<String> requestOtp(@RequestBody Map<String, Object> payload , @PathVariable int StudentId) {
         if (!userController.getLoggedInStudents().containsValue(StudentId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in Student to manage courses");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in Student to attend this lesson");
         }
         try {
             String email = (String) payload.get("email");
