@@ -1,0 +1,29 @@
+{
+  "software" : [ {
+    "assessmentID" : "A1",
+    "assessmentName" : "Assignment 1",
+    "courseTitle" : "Software Engineering",
+    "assessmentDescription" : "First assignment for Software Engineering",
+    "assessmentDate" : "2024-12-15",
+    "type" : "assignment",
+    "submissions" : [ {
+      "studentId" : "1",
+      "filePath" : "G:\\Storage\\Algorithms - Assignment #2.pdf",
+      "grade" : "100",
+      "feedback" : "good job"
+    } ]
+  }, {
+    "assessmentID" : "A2",
+    "assessmentName" : "Assignment 2",
+    "courseTitle" : "Software Engineering",
+    "assessmentDescription" : "Second assignment for Software Engineering",
+    "assessmentDate" : "2024-12-25",
+    "type" : "assignment",
+    "submissions" : [ {
+      "studentId" : "1",
+      "filePath" : "G:\\Storage\\Assignment 3-SW2-20220243.pdf",
+      "grade" : "95",
+      "feedback" : "good"
+    } ]
+  } ]
+}

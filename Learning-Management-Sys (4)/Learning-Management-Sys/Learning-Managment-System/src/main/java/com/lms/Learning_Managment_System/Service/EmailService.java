@@ -27,10 +27,10 @@ public class EmailService {
     private JavaMailSender mailSender ;
     @Value("${spring.mail.username}")
     private String fromEmail;
-    public void sendOTPViaEmail(String to ,  String name ){
+    public void sendOTPViaEmail(int id , String to ,  String name ){
         System.out.println(fromEmail);
         System.out.println("Sending OTP Via Email...");
-        String otp = generateOTP(145 , to) ;
+        String otp = generateOTP(id , to) ;
         System.out.println(otp);
          SimpleMailMessage message = new SimpleMailMessage() ;
         message.setTo(to);
@@ -47,7 +47,7 @@ public class EmailService {
             System.out.println("Failed to send email: " + e.getMessage());
         }
     }
-    private static final String JSON_FILE_PATH = "D:\\Fatma\\Collegue\\3rd Year\\CS\\1st Semester\\Advanced SW\\Assigments\\Learning-Management-Sys (4)\\OTP.json";
+    private static final String JSON_FILE_PATH = "OTP.json";
 
     public String generateOTP(int accountNumber, String email) {
         Random random = new Random();

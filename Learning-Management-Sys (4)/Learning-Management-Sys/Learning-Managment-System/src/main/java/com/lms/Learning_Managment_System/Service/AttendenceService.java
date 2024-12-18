@@ -29,7 +29,7 @@ public class AttendenceService {
         List<String> emails = new ArrayList<>();
         emails.add(email);
         student = new Attended(emails, lesson);
-        emailService.sendOTPViaEmail(email, name);
+        emailService.sendOTPViaEmail(studentId , email, name);
         System.out.println("OTP Sent for lesson: " + lesson);
     }
 
