@@ -41,19 +41,25 @@ public class Course_Controller {
     private UserController userController;
 
 
-    @PostMapping("/{instructor_id}/add_course")
-    public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int instructor_id) {
-        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage courses");
+    @PostMapping("/{user_id}/add_course")
+    public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int user_id) {
+        boolean isInstructor = userController.getLoggedInInstructors().containsValue(user_id);
+        boolean isAdmin = userController.getLoggedInAdmins().containsValue(user_id);
+        if (!isInstructor && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access Denied: You must be a logged-in instructor or admin to add a new course.");
         }
-
         course crs = service.search_course(newCourse.getCourse_title());
         if (crs != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Course title: " + crs.getCourse_title() + " already exists");
-        } else {
-            service.addCourse(newCourse);
-            return ResponseEntity.ok("Course added successfully. " + (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Course title: " + crs.getCourse_title() + " already exists");
         }
+        if (isInstructor) {
+            newCourse.setInstructor_id(user_id);
+        }
+        service.addCourse(newCourse);
+        return ResponseEntity.ok("Course added successfully. " +
+                (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.");
     }
 
     @GetMapping("/{instructor_id}/view_All_courses")
