@@ -27,10 +27,10 @@ public class EmailService {
     private JavaMailSender mailSender ;
     @Value("${spring.mail.username}")
     private String fromEmail;
-    public void sendOTPViaEmail(String to ,  String name ){
+    public void sendOTPViaEmail(int id , String to ,  String name ){
         System.out.println(fromEmail);
         System.out.println("Sending OTP Via Email...");
-        String otp = generateOTP(to) ;
+        String otp = generateOTP(id , to) ;
         System.out.println(otp);
          SimpleMailMessage message = new SimpleMailMessage() ;
         message.setTo(to);
@@ -49,12 +49,12 @@ public class EmailService {
     }
     private static final String JSON_FILE_PATH = "OTP.json";
 
-    public String generateOTP(String email) {
+    public String generateOTP(int accountNumber, String email) {
         Random random = new Random();
         int otpValue = 100_000 + random.nextInt(900_000);
         String otp = String.valueOf(otpValue);
         System.out.println("OTP : " + otp);
-        OTP otpInfo = new OTP(otp, email);
+        OTP otpInfo = new OTP(accountNumber, otp, email);
         saveOtpInfoToFile(otpInfo);  // Save OTP to file
         return otp;
     }
