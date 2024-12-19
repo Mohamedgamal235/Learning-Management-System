@@ -219,4 +219,13 @@ public class AssignmentService {
             e.printStackTrace();
         }
     }
+    public String getassinmentnameBYID(String assinment_id, String courseTitle) {
+        List<Assignment> assignments = getAssignments(courseTitle);
+            for (Assignment assignment : assignments) {
+                if (assignment.getAssessmentID() != null && assignment.getAssessmentID().equals(assinment_id)) {
+                    return assignment.getAssessmentName();
+                }
+            }
+        return null;
+    }
 }

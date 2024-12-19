@@ -16,6 +16,8 @@ public class student_coursesService {
 
     @Autowired
     private UserController userController;
+    @Autowired
+    private courseService courseService;
 
     private static final String ENROLLED_STUDENTS_FILE = "enrolled_students.json";
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -112,7 +114,16 @@ public class student_coursesService {
                 }
             }
         }
-
         return result;
+    }
+    public List<course> getAvail_courses() {
+        List<course> courses = courseService.getAllCourses();
+        List<course> availableCourses = new ArrayList<>();
+        for (course crs : courses) {
+            if (crs.isAvailableForRegistration()) {
+                availableCourses.add(crs);
+            }
+        }
+        return availableCourses;
     }
 }

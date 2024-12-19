@@ -4,6 +4,7 @@ import com.lms.Learning_Managment_System.Model.Assignment;
 import com.lms.Learning_Managment_System.Model.assignmentSubmission;
 import com.lms.Learning_Managment_System.Model.enrolled_student;
 import com.lms.Learning_Managment_System.Service.AssignmentService;
+import com.lms.Learning_Managment_System.Service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,9 @@ public class AssignmentController {
     private UserController userController;
     @Autowired
     private com.lms.Learning_Managment_System.Service.student_coursesService student_coursesService;
-
+    @Autowired
+    private NotificationService notificationService;
+    // Inform student that there is an assignment
     @PostMapping("/{instructor_id}/addAssignment/{courseTitle}")
     public ResponseEntity<?> addAssignment(@PathVariable String courseTitle, @RequestBody Assignment assignment, @PathVariable int instructor_id) {
         try {
@@ -33,6 +36,12 @@ public class AssignmentController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to add assignments");
             }
             assignmentService.addAssignment(courseTitle, assignment);
+            String message = "Dear Students, Kindly be informed that a new assignment '"+assignment.getAssessmentName()+"' has been added to the course '"+ courseTitle+"' Please ensure you submit it before the deadline: "+ assignment.getAssessmentDate();
+            List<enrolled_student> enrolledStudents = student_coursesService.getStudentsEnrolledInCourse(courseTitle);
+            for (enrolled_student student : enrolledStudents) {
+                Integer Userid = student.getEnrolled_student_id();
+                notificationService.add(message,Userid);
+            }
             return ResponseEntity.ok("Assignment added successfully");
         }
         catch (IllegalArgumentException e) {
@@ -76,6 +85,9 @@ public class AssignmentController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: The student is not enrolled in this course");
             }
             assignmentService.gradeAssignment(courseTitle, assignmentId, studentId, grade, feedback);
+            String assignmentName =  assignmentService.getassinmentnameBYID(assignmentId,courseTitle);
+            String message = "Dear student, kindly be informed that your assignment titled '"+ assignmentName +"' has been graded. Please visit the assignment page to view your feedback and grade ";
+            notificationService.add(message, Integer.parseInt(studentId));
             return ResponseEntity.ok("Assignment graded successfully.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -150,5 +162,4 @@ public class AssignmentController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
 }

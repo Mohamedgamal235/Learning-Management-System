@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.lms.Learning_Managment_System.Service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,7 @@ import com.lms.Learning_Managment_System.Model.enrolled_student;
 import com.lms.Learning_Managment_System.Model.lesson;
 import com.lms.Learning_Managment_System.Service.courseService;
 
+
 @RestController
 @RequestMapping("/manage_courses")
 public class Course_Controller {
@@ -39,22 +41,34 @@ public class Course_Controller {
     private com.lms.Learning_Managment_System.Service.student_coursesService student_coursesService;
     @Autowired
     private UserController userController;
+    @Autowired
+    private NotificationService notificationService;
 
-
-    @PostMapping("/{instructor_id}/add_course")
-    public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int instructor_id) {
-        if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage courses");
+    @PostMapping("/{user_id}/add_course")
+    public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int user_id) {
+        boolean isInstructor = userController.getLoggedInInstructors().containsValue(user_id);
+        boolean isAdmin = userController.getLoggedInAdmins().containsValue(user_id);
+        if (!isInstructor && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access Denied: You must be a logged-in instructor or admin to add a new course.");
         }
-
         course crs = service.search_course(newCourse.getCourse_title());
         if (crs != null) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Course title: " + crs.getCourse_title() + " already exists");
-        } else {
-            service.addCourse(newCourse);
-            return ResponseEntity.ok("Course added successfully. " + (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.");
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Course title: " + crs.getCourse_title() + " already exists");
         }
-    }
+        if (isInstructor) {
+            newCourse.setInstructor_id(user_id);
+        }
+        service.addCourse(newCourse);
+        String message = "Dear Students, we are pleased to announce that a new course, ["+ newCourse.getCourse_title() +"] has been added to the platform. Enroll now to enhance your learning journey and expand your knowledge";
+        for (Map.Entry<String, Integer> entry : userController.getLoggedInStudents().entrySet()) {
+            Integer Userid = entry.getValue();
+            notificationService.add(message,Userid);
+        }
+        return ResponseEntity.ok("Course added successfully. " + (newCourse.getCourse_lessons() != null ? newCourse.getCourse_lessons().size() : 0) + " lessons.");
+        }
+
 
     @GetMapping("/{instructor_id}/view_All_courses")
     public ResponseEntity<?> viewAllCourses(@PathVariable int instructor_id) {
@@ -71,6 +85,12 @@ public class Course_Controller {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to manage lessons");
         }
         service.addLessonToCourse(course_title, newLesson);
+        String message = "Dear Students, Kindly be informed that a new lesson, "+ newLesson.getLessonTitle() +" has been added to the course: "+ course_title;
+        List<enrolled_student> enrolledStudents = student_coursesService.getStudentsEnrolledInCourse(course_title);
+        for (enrolled_student student : enrolledStudents) {
+            Integer Userid = student.getEnrolled_student_id();
+            notificationService.add(message,Userid);
+        }
         return ResponseEntity.ok("Lesson added to course: " + course_title);
     }
 
@@ -126,6 +146,12 @@ public class Course_Controller {
                 }
             }
             service.saveCoursesToFile();
+            String message = "Dear Students, kindly be informed that new resources have been uploaded to the lesson,"+ lessonTitle +" in the course: "+ courseTitle + " These materials are now available for your reference and study";
+            List<enrolled_student> enrolledStudents = student_coursesService.getStudentsEnrolledInCourse(courseTitle);
+            for (enrolled_student student : enrolledStudents) {
+                Integer Userid = student.getEnrolled_student_id();
+                notificationService.add(message,Userid);
+            }
             return ResponseEntity.ok("Files uploaded successfully to lesson: " + lessonTitle);
         } catch (IOException e) {
             e.printStackTrace();
@@ -170,6 +196,12 @@ public class Course_Controller {
                                           @RequestBody List<Question> questions) {
         try {
             service.addQuestionsToBank(course_title, questions);
+            String message = "Dear Students, kindly be informed that additional questions have been added to the course: "+ course_title + " Please review the newly added content";
+            List<enrolled_student> enrolledStudents = student_coursesService.getStudentsEnrolledInCourse(course_title);
+            for (enrolled_student student : enrolledStudents) {
+                Integer Userid = student.getEnrolled_student_id();
+                notificationService.add(message,Userid);
+            }
             return new ResponseEntity<>(questions, HttpStatus.OK);
         }
         catch (IllegalArgumentException e) {

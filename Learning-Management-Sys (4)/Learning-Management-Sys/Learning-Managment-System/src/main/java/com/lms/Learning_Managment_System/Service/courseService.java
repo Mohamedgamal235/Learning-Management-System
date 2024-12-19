@@ -101,7 +101,12 @@ public class courseService {
         }
         throw new IllegalArgumentException("Course not found: " + courseTitle);
     }
-
-    
+    public Integer getInstructorId(String courseTitle){
+        course crs = search_course(courseTitle);
+        if (crs != null) {
+            return crs.getInstructor_id();
+        }
+        return null;
+    }
 
 }
