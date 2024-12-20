@@ -1,5 +1,6 @@
 package com.lms.Learning_Managment_System.Controller;
 
+import com.lms.Learning_Managment_System.Model.OTP;
 import com.lms.Learning_Managment_System.Service.AttendenceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,15 +18,16 @@ public class OTPController {
     private final AttendenceService attendenceService;
     @Autowired
     private UserController userController;
+    String lesson = "" ;
     @PostMapping("/{StudentId}/request")
     public ResponseEntity<String> requestOtp(@RequestBody Map<String, Object> payload , @PathVariable int StudentId) {
         if (!userController.getLoggedInStudents().containsValue(StudentId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in Student to attend this lesson");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in Student to manage courses");
         }
         try {
-            String email = (String) payload.get("email");
-            String name = (String) payload.get("name");
-            String lesson = (String) payload.get("lesson");
+            String email = userController.getEmailById(StudentId);
+            String name = userController.getStudentNameById(StudentId) ;
+             lesson = (String) payload.get("lesson");
 
             attendenceService.attend(email, name, StudentId, lesson);
             return ResponseEntity.ok("OTP sent successfully.");
@@ -41,12 +43,11 @@ public class OTPController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in Student to manage courses");
         }
         try {
-            String email = payload.get("email");
+            String email = userController.getEmailById(StudentId) ;
             String otp = payload.get("otp");
-            String lesson = payload.get("lesson");
             System.out.println(otp);
-            if (attendenceService.validateOTP(email, otp)) {
-                attendenceService.markAttendance(lesson , email);
+            if (attendenceService.validateOTP(email, otp ,lesson)) {
+                attendenceService.markAttendance(email);
                 return ResponseEntity.ok("Attendance marked successfully.");
             } else {
                 return ResponseEntity.status(401).body("Invalid OTP.");
