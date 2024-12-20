@@ -148,6 +148,14 @@ public class UserController {
             }
         }
         return null;
+    } 
+      public String getEmailById(int id){
+        for (User user : students) {
+            if (user.getId() == id) {
+                return user.getEmail();
+            }
+        }
+        return null;
     }
 }
 
