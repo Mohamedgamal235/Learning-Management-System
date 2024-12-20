@@ -3,6 +3,7 @@ package com.lms.Learning_Managment_System.Controller;
 import com.lms.Learning_Managment_System.Model.Notification;
 import com.lms.Learning_Managment_System.Service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class NotificationController {
     private NotificationService notificationService;
 
     @GetMapping("{userID}/get")
-    public List<String> getNotifications(@PathVariable String userRole,@PathVariable int userID, @RequestParam boolean unreadonly) {
+    public ResponseEntity<?> getNotifications(@PathVariable String userRole, @PathVariable int userID, @RequestParam boolean unreadonly) {
         notificationService.validateUserRole(userRole,userID);
         return notificationService.getNotifications(userID,unreadonly);
     }

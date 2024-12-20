@@ -47,6 +47,22 @@ public class EmailService {
             System.out.println("Failed to send email: " + e.getMessage());
         }
     }
+    public void sendMail(String toEmail,String subject, String body){
+        SimpleMailMessage message = new SimpleMailMessage() ;
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(body);
+        try {
+            mailSender.send(message);
+            System.out.println("Email sent successfully...");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to send email: " + e.getMessage());
+        }
+
+    }
     private static final String JSON_FILE_PATH = "OTP.json";
 
     public String generateOTP(int accountNumber, String email , String lesson) {
