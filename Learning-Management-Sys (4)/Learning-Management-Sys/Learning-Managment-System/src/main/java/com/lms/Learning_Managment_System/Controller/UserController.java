@@ -3,7 +3,9 @@ package com.lms.Learning_Managment_System.Controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lms.Learning_Managment_System.Model.User;
 
+import com.lms.Learning_Managment_System.Service.EmailService;
 import lombok.Getter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +26,8 @@ public class UserController {
     private Map<String, Integer> loggedInStudents = new HashMap<>();
     private Map<String, Integer> loggedInInstructors = new HashMap<>();
     private Map<String, Integer> loggedInAdmins = new HashMap<>();
+    @Autowired
+    private EmailService emailService;
 
     public UserController() {
         loadUsersFromFile();
@@ -41,7 +45,10 @@ public class UserController {
         if (isEmailExists(user.getEmail())) {
             return "Registration Failed, A user with this email address already exists";
         }
-
+       if (user.getEmail() == null || user.getEmail().isEmpty() ||
+               user.getRole() == null || user.getRole().isEmpty()) {
+           return "Registration Failed: Missing required fields";
+       }
         // Add user to the appropriate list based on role
         user.setId(id_counter++);
         if ("student".equalsIgnoreCase(user.getRole())) {
@@ -56,7 +63,14 @@ public class UserController {
         } else {
             return "Registration Failed, Invalid role specified. Role must be 'student', 'instructor', or 'admin'.";
         }
-
+        String MailBody ="Dear "+user.getFirstName()+" "+user.getLastName()+"\n\nWelcome to our Learning-Managment-System! We are thrilled to have you on board and excited to support your learning journey.\nHere’s what you can do next to make the most of our platform:\n" +
+                "\n" +
+                "1. Explore Courses: Browse through the available courses and enroll in the ones that match your interests.\n" +
+                "2. Track Your Progress: Stay organized and monitor your achievements through our easy-to-use dashboard.\n" +
+                "3. Stay Engaged: Participate in discussions, quizzes, and assignments to deepen your understanding.\nIf you have any questions or need assistance, feel free to contact us.We're here to help!\n\n" +
+                "Best regards";
+        String MailSubject = "Welcome to our leaning management system platform";
+        emailService.sendMail(user.getEmail(),MailSubject,MailBody);
         return "Successful Registration. Welcome To Learning Management System";
     }
 
@@ -118,14 +132,13 @@ public class UserController {
         try {
             File file = new File(fileName);
             if (file.exists()) {
-                return Arrays.asList(objectMapper.readValue(file, User[].class));
+                return new ArrayList<>(Arrays.asList(objectMapper.readValue(file, User[].class)));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return new ArrayList<>();
     }
-
     private void saveUsersToFile(String fileName, List<User> userList) {
         try {
             objectMapper.writeValue(new File(fileName), userList);
@@ -145,6 +158,14 @@ public class UserController {
         for (User user : students) {
             if (user.getId() == id) {
                 return user.getFirstName() + " " + user.getLastName();
+            }
+        }
+        return null;
+    } 
+      public String getEmailById(int id){
+        for (User user : students) {
+            if (user.getId() == id) {
+                return user.getEmail();
             }
         }
         return null;

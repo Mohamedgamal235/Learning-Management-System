@@ -3,39 +3,28 @@ package com.lms.Learning_Managment_System.Model;
 import java.time.LocalDateTime;
 
 public class OTP {
-    private int id ;
-    private String otp ;
-    private String email ;
-    public OTP(){}
-    public OTP(int id , String otp , String email) {
-        this.otp = otp ;
-        this.email = email ;
-        this.id = id;
-    }
+    private int id;
+    private String otp;
+    private String email;
+    private String lesson;
 
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setOtp(String otp) {
+    public OTP(int id, String otp, String email, String lesson) {
         this.otp = otp;
+        this.email = email;
+        this.id = id;
+        this.lesson = lesson;
     }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public String getOtp() {
-        return otp;
-    }
-
     public int getId() {
 
         return id;
+    }
+
+    public String getLesson() {
+        return lesson;
     }
 }

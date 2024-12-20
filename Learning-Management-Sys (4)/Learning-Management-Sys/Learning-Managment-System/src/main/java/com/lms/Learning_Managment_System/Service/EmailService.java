@@ -27,10 +27,10 @@ public class EmailService {
     private JavaMailSender mailSender ;
     @Value("${spring.mail.username}")
     private String fromEmail;
-    public void sendOTPViaEmail(int id , String to ,  String name ){
+    public void sendOTPViaEmail(int id , String to ,  String name , String lesson ){
         System.out.println(fromEmail);
         System.out.println("Sending OTP Via Email...");
-        String otp = generateOTP(id , to) ;
+        String otp = generateOTP(id , to , lesson) ;
         System.out.println(otp);
          SimpleMailMessage message = new SimpleMailMessage() ;
         message.setTo(to);
@@ -47,14 +47,30 @@ public class EmailService {
             System.out.println("Failed to send email: " + e.getMessage());
         }
     }
+    public void sendMail(String toEmail,String subject, String body){
+        SimpleMailMessage message = new SimpleMailMessage() ;
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject(subject);
+        message.setText(body);
+        try {
+            mailSender.send(message);
+            System.out.println("Email sent successfully...");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to send email: " + e.getMessage());
+        }
+
+    }
     private static final String JSON_FILE_PATH = "OTP.json";
 
-    public String generateOTP(int accountNumber, String email) {
+    public String generateOTP(int accountNumber, String email , String lesson) {
         Random random = new Random();
         int otpValue = 100_000 + random.nextInt(900_000);
         String otp = String.valueOf(otpValue);
         System.out.println("OTP : " + otp);
-        OTP otpInfo = new OTP(accountNumber, otp, email);
+        OTP otpInfo = new OTP(accountNumber, otp, email , lesson);
         saveOtpInfoToFile(otpInfo);  // Save OTP to file
         return otp;
     }
@@ -64,25 +80,19 @@ public class EmailService {
         File file = new File(JSON_FILE_PATH);
 
         try {
-            // Check if the file exists, if not, create it
             if (!file.exists()) {
-                file.createNewFile();  // Create the file if it doesn't exist
+                file.createNewFile(); 
             }
-
-            // We will use a List to hold OTP data and write it to the file
+            
             List<OTP> otpList = new ArrayList<>();
-
-            // If the file already contains data, we will append the new OTP
+            
             if (file.length() > 0) {
-                // Read existing data from file
+             
                 OTP[] existingData = objectMapper.readValue(file, OTP[].class);
                 otpList.addAll(Arrays.asList(existingData)); // Add existing OTPs to the list
             }
 
-            // Add the new OTP entry
             otpList.add(otpInfo);
-
-            // Write the updated list of OTPs to the file
             objectMapper.writeValue(file, otpList);
 
         } catch (IOException e) {

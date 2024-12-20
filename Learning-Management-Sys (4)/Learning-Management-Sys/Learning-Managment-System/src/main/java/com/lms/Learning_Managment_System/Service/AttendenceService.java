@@ -1,6 +1,8 @@
 package com.lms.Learning_Managment_System.Service;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
+import ch.qos.logback.core.joran.sanity.Pair;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lms.Learning_Managment_System.Model.Attended;
@@ -11,15 +13,31 @@ import java.io.File;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.util.*;
+ class pair{
+    public String first ;
+    public String second ;
+    pair(String first , String second){
+        this.first = first ;
+        this.second = second ;
+    }
 
+     public String getSecond() {
+         return second;
+     }
+
+     public String getFirst() {
+         return first;
+     }
+ }
 @Service
 public class AttendenceService {
     private final EmailService emailService;
     private Attended student = new Attended();
-    private Map<String, String> otpInfo = new HashMap<>();
+    private Map<String, pair> otpInfo = new HashMap<>();
     private Map<String, List<String>> attendenceInfo = new HashMap<>();
     private static final String ATTENDANCE_FILE_PATH = "Attendence.json";
     private static final String OTP_FILE_PATH = "OTP.json";
+    private pair pair = new pair("" , "") ;
 
     public AttendenceService(EmailService emailService) {
         this.emailService = emailService;
@@ -29,11 +47,11 @@ public class AttendenceService {
         List<String> emails = new ArrayList<>();
         emails.add(email);
         student = new Attended(emails, lesson);
-        emailService.sendOTPViaEmail(studentId , email, name);
+        emailService.sendOTPViaEmail(studentId , email, name , lesson);
         System.out.println("OTP Sent for lesson: " + lesson);
     }
 
-    public Boolean validateOTP(String email, String otpNumber) throws IOException {
+    public Boolean validateOTP(String email, String otpNumber , String Lesson) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode jsonArray = mapper.readTree(new File(OTP_FILE_PATH));
@@ -41,12 +59,15 @@ public class AttendenceService {
             for (JsonNode node : jsonArray) {
                 String Email = node.get("email").asText();
                 String otp = node.get("otp").asText();
-                otpInfo.put(Email, otp);  // Store email and OTP in the map
+                String lesson = node.get("lesson").asText() ;
+                 pair = new pair(otp , lesson) ;
+                otpInfo.put(Email,pair);  // Store email and OTP and lwsson in the map
             }
+            System.out.println(otpInfo.isEmpty());
+            for (Map.Entry<String, pair> entry : otpInfo.entrySet()) {
+                System.out.println(entry.getKey() + " " + entry.getValue().getFirst() + " " + entry.getValue().getSecond());
+                if (entry.getKey().equals(email) && entry.getValue().getFirst().equals(otpNumber)&& entry.getValue().getSecond().equals(Lesson)) {
 
-            // Print the map
-            for (Map.Entry<String, String> entry : otpInfo.entrySet()) {
-                if (entry.getKey().equals(email) && entry.getValue().equals(otpNumber)) {
                     return true;
                 }
             }
@@ -56,8 +77,9 @@ public class AttendenceService {
         return false;
     }
 
-    public void markAttendance(String lesson, String email) throws IOException {
+    public void markAttendance(String email) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        String lesson = pair.getSecond() ;
         File file = new File(ATTENDANCE_FILE_PATH);
 
         // Step 1: Load existing data from file

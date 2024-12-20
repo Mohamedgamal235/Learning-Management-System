@@ -5,6 +5,8 @@ import com.lms.Learning_Managment_System.Controller.UserController;
 import com.lms.Learning_Managment_System.Model.Notification;
 import com.lms.Learning_Managment_System.Model.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
@@ -26,23 +28,23 @@ public class NotificationService {
         loadNotificationsFromfile();
     }
     public void add(String message,int userID){
-        if (!UserController.getLoggedInStudents().containsValue(userID) && !UserController.getLoggedInInstructors().containsValue(userID)) {
-            throw new IllegalStateException("Access Denied: You must be logged in to send a notification.");
-        }
         Notification notification = new Notification(UUID.randomUUID().toString(),message,userID);
         notifications.add(notification);
         saveNotificationsTofile();
     }
 
-    public List<String> getNotifications(int userID,boolean unreadOnly){
+    public ResponseEntity<?> getNotifications(int userID, boolean unreadOnly){
         if (!UserController.getLoggedInStudents().containsValue(userID) && !UserController.getLoggedInInstructors().containsValue(userID)) {
-            throw new IllegalStateException("Access Denied: Users must be logged in to receive notifications.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: Users must be logged in to receive notifications.");
         }
-        return notifications.stream()
+        List<String> messages = new ArrayList<>();
+        messages = notifications.stream()
                 .filter(notification -> (notification.getUser_ID() == userID))
                 .filter(notification -> !unreadOnly || !notification.is_read())
                 .map(Notification::getMessage)
                 .collect(Collectors.toList());
+        MarkAllAsRead(userID);
+        return ResponseEntity.status(HttpStatus.OK).body(messages);
     }
 
     private void loadNotificationsFromfile(){

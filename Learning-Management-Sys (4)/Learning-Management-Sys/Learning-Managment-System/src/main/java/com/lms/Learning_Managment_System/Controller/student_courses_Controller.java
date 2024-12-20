@@ -1,5 +1,6 @@
 package com.lms.Learning_Managment_System.Controller;
 import com.lms.Learning_Managment_System.Model.course;
+import com.lms.Learning_Managment_System.Service.EmailService;
 import com.lms.Learning_Managment_System.Service.NotificationService;
 import com.lms.Learning_Managment_System.Service.courseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import com.lms.Learning_Managment_System.Service.student_coursesService;
 
 import java.security.Provider;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/student")
@@ -23,6 +25,8 @@ public class student_courses_Controller {
     private NotificationService notificationService;
     @Autowired
     private courseService courseService;
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping("/enroll/{student_id}/{course_title}")
     public ResponseEntity<String> enrollInCourse(@PathVariable int student_id,
@@ -40,11 +44,16 @@ public class student_courses_Controller {
                     .body(" Course: " + course_title + " is not available for registration");
         }
         String response = student_coursesService.enroll_in_Course(student_id, course_title);
-        String StudentMessage = "We are pleased to inform you that you have successfully enrolled in the course "+ course_title + " We encourage you to actively engage with the course materials and participate in all activities to maximize your learning experience.";
+        String StudentMessage = "Dear Student, We are pleased to inform you that you have successfully enrolled in the course "+ course_title + " We encourage you to actively engage with the course materials and participate in all activities to maximize your learning experience.";
+        String StudentSubject = "Successful enrollment";
+        String studentmail = getEmailById(UserController.getLoggedInStudents(),student_id);
         notificationService.add(StudentMessage,student_id);
-
-        String InstructorMessage ="Kindly be informed that a new student, "+UserController.getStudentNameById(student_id)+"has enrolled in your course, "+course_title;
+        emailService.sendMail(studentmail,StudentSubject,StudentMessage);
+        String InstructorMessage ="Dear"+UserController.getInstructorNameById(courseService.getInstructorId(course_title))+"\n\nKindly be informed that a new student, "+UserController.getStudentNameById(student_id)+" has enrolled in your course, "+course_title;
+        String InstructorSubject = "New student Enrolled";
+        String InstructorMail = getEmailById(UserController.getLoggedInInstructors(),courseService.getInstructorId(course_title));
         notificationService.add(InstructorMessage,courseService.getInstructorId(course_title));
+        emailService.sendMail(InstructorMail,InstructorSubject,InstructorMessage);
         return ResponseEntity.ok(response);
     }
 
@@ -56,5 +65,13 @@ public class student_courses_Controller {
         List<course>courses= student_coursesService.getAvail_courses();
         return ResponseEntity.ok(courses);
 
+    }
+    public  String getEmailById(Map<String, Integer> map, int id) {
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (entry.getValue() == id) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 }

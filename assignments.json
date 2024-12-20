@@ -8,9 +8,14 @@
     "type" : "assignment",
     "submissions" : [ {
       "studentId" : "1",
-      "filePath" : "G:\\Storage\\Algorithms - Assignment #2.pdf",
+      "filePath" : "C:\\Storage\\Architecture Style and Scenarios.pdf",
       "grade" : "100",
       "feedback" : "good job"
+    }, {
+      "studentId" : "3",
+      "filePath" : "C:\\Storage\\Assignment #3.pdf",
+      "grade" : null,
+      "feedback" : null
     } ]
   }, {
     "assessmentID" : "A2",
@@ -21,7 +26,21 @@
     "type" : "assignment",
     "submissions" : [ {
       "studentId" : "1",
-      "filePath" : "G:\\Storage\\Assignment 3-SW2-20220243.pdf",
+      "filePath" : "C:\\Storage\\Advanced SWE - Project 2024 (1).pdf",
+      "grade" : "95",
+      "feedback" : "good"
+    } ]
+  } ],
+  "data structure" : [ {
+    "assessmentID" : "A2",
+    "assessmentName" : "Assignment 2",
+    "courseTitle" : "Software Engineering",
+    "assessmentDescription" : "Second assignment for Software Engineering",
+    "assessmentDate" : "2024-12-25",
+    "type" : "assignment",
+    "submissions" : [ {
+      "studentId" : "4",
+      "filePath" : "C:\\Storage\\lecture 3_2024.pdf",
       "grade" : "95",
       "feedback" : "good"
     } ]
