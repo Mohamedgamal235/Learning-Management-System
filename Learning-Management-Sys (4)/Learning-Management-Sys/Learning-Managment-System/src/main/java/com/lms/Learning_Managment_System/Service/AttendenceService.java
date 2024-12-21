@@ -43,6 +43,10 @@ public class AttendenceService {
         this.emailService = emailService;
     }
 
+    public Map<String, List<String>> getAttendanceInfo() { // for make Excel report
+        return attendenceInfo;
+    }
+
     public void attend(String email, String name, int studentId, String lesson) {
         List<String> emails = new ArrayList<>();
         emails.add(email);
