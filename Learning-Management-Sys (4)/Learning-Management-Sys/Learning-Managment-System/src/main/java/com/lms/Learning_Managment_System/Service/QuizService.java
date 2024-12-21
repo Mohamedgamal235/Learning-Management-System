@@ -1,10 +1,13 @@
 package com.lms.Learning_Managment_System.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lms.Learning_Managment_System.Model.Question;
+import com.lms.Learning_Managment_System.Controller.UserController;
+import com.lms.Learning_Managment_System.Model.Assessment;
 import com.lms.Learning_Managment_System.Model.Quiz;
+import com.lms.Learning_Managment_System.Model.Question;
 import com.lms.Learning_Managment_System.Model.course;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -12,100 +15,136 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class QuizService {
 
     @Autowired
     private courseService courseService;
 
-    private static final String JASON_QUIZ_FILE = "quizzes.json";
-    private Map<String, List<Quiz>> quizzes = new HashMap<>();
-
-
+    private static final String JSON_QUIZ_FILE = "quizzes.json";
+    private Map<Integer, List<Quiz>> instructorQuizzes = new HashMap<>();
+    private Map<Integer, String> instructorCourses = new HashMap<>();
+    private Map<String , Quiz> quizWithId = new HashMap<>();
     @Autowired
-    private com.lms.Learning_Managment_System.Controller.student_courses_Controller student_courses_Controller;
+    private UserController userController;
+
+    public void setCourseService(courseService courseService) {
+        this.courseService = courseService;
+    }
+
+    public void setIdOfInstructorCourses(int id , String courseTitle) {
+        instructorCourses.put(id, courseTitle);
+        System.out.println(instructorCourses.get(3));
+    }
+
+    public Map<Integer, String> getIdOfInstructor(){
+        return instructorCourses ;
+    }
 
     public QuizService() {
         loadFromJsonFile() ;
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public void loadFromJsonFile(){
+    private void loadFromJsonFile() {
         ObjectMapper mapper = new ObjectMapper();
-        try{
-            File file = new File(JASON_QUIZ_FILE);
-            if (file.exists())
-                quizzes = mapper.readValue(file , mapper.getTypeFactory().constructMapType(HashMap.class , String.class , List.class));
-            else
-                System.out.println("File does not exist");
-        }
-        catch (IOException e){
-            e.printStackTrace();
+        try {
+            File file = new File(JSON_QUIZ_FILE);
+
+            if (file.exists() && file.length() > 0) {
+                List<JsonNode> courseData = mapper.readValue(file, new TypeReference<List<JsonNode>>() {});
+                for (JsonNode courseNode : courseData) {
+                    String courseTitle = courseNode.get("courseTitle").asText();
+                    List<Quiz> quizzes = new ArrayList<>();
+
+                    for (JsonNode assessmentNode : courseNode.get("assessments")) {
+                        Quiz quiz = mapper.treeToValue(assessmentNode, Quiz.class);
+                        quizzes.add(quiz);
+
+                        // Map the instructorID to the courseTitle
+                        instructorCourses.put(quiz.getInstructorID(), courseTitle);
+                    }
+
+                    // Add quizzes to the instructorQuizzes map
+                    if (!quizzes.isEmpty()) {
+                        int instructorID = quizzes.get(0).getInstructorID();
+                        instructorQuizzes.put(instructorID, quizzes);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error loading quizzes from file: " + e.getMessage());
         }
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public void validateCourse(String courseTitle){
+    public void validateInstructorForCourse(int instructorID, String courseTitle) {
+        String crs = instructorCourses.get(instructorID);
+        System.out.println(crs);
+        if (crs == null || !crs.equalsIgnoreCase(courseTitle)) {
+            throw new IllegalArgumentException("The instructor is not associated with the course ...: " + courseTitle);
+        }
+    }
+
+    // ------------------------------------------------------------------
+
+    public void validateCourse(String courseTitle) {
         course crs = courseService.search_course(courseTitle);
-        if (crs == null)
+        if (crs == null) {
             throw new IllegalArgumentException("Course not found.");
+        }
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public void addQuestionsToBank(String courseTitle, List<Question> questions) {
+    public void createQuiz(String courseTitle, Quiz quiz, int instructorID) {
+        quiz.setInstructorID(instructorID);
+        quiz.setCourseTitle(courseTitle);
+        quiz.setType("quiz");
+
+        validateInstructorForCourse(instructorID, courseTitle);
         validateCourse(courseTitle);
-        course crs = courseService.search_course(courseTitle);
-        List<Question> questionsCourse = crs.getQuestionBank();
-        questionsCourse.addAll(questions);
-        crs.setQuestionBank(questionsCourse);
-        courseService.saveCoursesToFile();
-    }
 
-    // ------------------
-
-//    public void createQuiz(String courseTitle , Quiz quiz){
-//        validateCourse(courseTitle);
-//        quizzes.putIfAbsent(courseTitle , new ArrayList<>());
-//        quizzes.get(courseTitle).add(quiz);
-//        saveQuizzesToJsonFile();
-//    }
-
-    // ------------------
-
-    public void createQuiz(String courseTitle, Quiz quiz) {
-        validateCourse(courseTitle);
         course crs = courseService.search_course(courseTitle);
 
-        if (crs.getQuestionBank().isEmpty())
+        if (crs.getQuestionBank().isEmpty()) {
             throw new IllegalArgumentException("No questions available in the course's question bank.");
+        }
 
-        // select questions randommm
+        // select Questions randooommm
         Collections.shuffle(crs.getQuestionBank());
-        List<Question> questionsCourse = crs.getQuestionBank().stream().limit(3).collect(Collectors.toList());
-        quiz.setQuestions(questionsCourse);
+        List<Question> selectedQuestions = crs.getQuestionBank().stream().limit(3).collect(Collectors.toList());
+        quiz.setQuestions(selectedQuestions);
 
-        quizzes.putIfAbsent(courseTitle, new ArrayList<>());
-        quizzes.get(courseTitle).add(quiz);
+
+        instructorQuizzes.computeIfAbsent(instructorID, k -> new ArrayList<>()).add(quiz);
+        instructorCourses.putIfAbsent(instructorID, courseTitle);
+        quizWithId.putIfAbsent(quiz.getAssessmentID(), quiz);
         saveQuizzesToJsonFile();
+
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public List<Quiz> getQuizzes(String courseTitle) {
-        validateCourse(courseTitle);
-        return quizzes.getOrDefault(courseTitle , new ArrayList<>());
+    public List<Quiz> getQuizzesForInstructor(int instructorID, String courseTitle) {
+        validateInstructorForCourse(instructorID, courseTitle);
+        return instructorQuizzes.getOrDefault(instructorID, new ArrayList<>());
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public Quiz getQuizById(String courseTitle , String quizId) {
-        validateCourse(courseTitle);
-        List<Quiz> crsQuizzes = quizzes.getOrDefault(courseTitle , new ArrayList<>());
-        return crsQuizzes.stream().filter(quiz ->
-                quiz.getAssessmentID().equals(quizId)).findFirst().orElseThrow(null);
+    public Quiz getQuizById(String courseTitle, String quizId, int instructorID) {
+        validateInstructorForCourse(instructorID, courseTitle);
+        List<Quiz> quizzes = instructorQuizzes.getOrDefault(instructorID, new ArrayList<>());
+
+        return quizzes.stream()
+                .filter(quiz -> quiz.getAssessmentID().equals(quizId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Quiz not found with ID: " + quizId));
     }
 
     // Instructors can create a questions bank per course.
@@ -113,44 +152,142 @@ public class QuizService {
     // Performance Tracking Student Progress Tracking: ○ Instructors can track quiz scores
     // Adminsand Instructors can generate excel reports on student performance (including grades and attendance).
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public void deleteQuiz(String courseTitle, String quizId){
-        validateCourse(courseTitle);
-        List<Quiz> crsQuizzes = quizzes.get(courseTitle);
-        if (crsQuizzes != null) {
-            for (Quiz quiz : crsQuizzes) {
-                if (quiz.getAssessmentID().equals(quizId)) {
-                    quizzes.remove(quiz.getCourseTitle());
-                    break;
-                }
-            }
-            if (crsQuizzes.isEmpty()) {
-                quizzes.remove(courseTitle);
-            }
-            saveQuizzesToJsonFile();
+    public void deleteQuiz(String courseTitle, String quizId, int instructorID) {
+        validateInstructorForCourse(instructorID, courseTitle);
+        List<Quiz> quizzes = instructorQuizzes.getOrDefault(instructorID, new ArrayList<>());
+
+        quizzes.removeIf(quiz -> quiz.getAssessmentID().equals(quizId));
+        if (quizzes.isEmpty()) {
+            instructorQuizzes.remove(instructorID);
         }
-    }
 
-    // ------------------
-
-    public void clearQuizzesForCourse(String courseTitle){
-        validateCourse(courseTitle);
-        quizzes.remove(courseTitle);
         saveQuizzesToJsonFile();
     }
 
-    // ------------------
+    // ------------------------------------------------------------------
 
-    public void saveQuizzesToJsonFile(){
+    public void clearQuizzesForCourse(String courseTitle, int instructorID) {
+        validateInstructorForCourse(instructorID, courseTitle);
+        instructorQuizzes.remove(instructorID);
+        saveQuizzesToJsonFile();
+    }
+
+    // ------------------------------------------------------------------
+
+    private void saveQuizzesToJsonFile() {
         ObjectMapper mapper = new ObjectMapper();
-        try{
-            mapper.writeValue(new File(JASON_QUIZ_FILE) , quizzes);
+        List<Map<String, Object>> output = new ArrayList<>();
+
+        for (Map.Entry<Integer, List<Quiz>> entry : instructorQuizzes.entrySet()) {
+            int instructorID = entry.getKey();
+            String courseTitle = instructorCourses.get(instructorID);
+            List<Quiz> quizzes = entry.getValue();
+
+            Map<String, Object> courseData = new HashMap<>();
+            courseData.put("courseTitle", courseTitle);
+            courseData.put("assessments", quizzes);
+
+            output.add(courseData);
         }
-        catch (IOException e){
-            e.printStackTrace();
+
+        try {
+            mapper.writeValue(new File(JSON_QUIZ_FILE), output);
+        } catch (IOException e) {
+            System.err.println("Error saving quizzes to file: " + e.getMessage());
         }
     }
 
-    // ------------------
+
+    // ---------------------------------------------------------------------------------
+
+    public String generateFeedback(int score, int totalQuestions) {
+        if (score >= 85)
+            return "Excellent work!" ;
+        else if (score >= 70)
+            return "Very Good!" ;
+        else if (score >= 60)
+            return "Good!" ;
+        else if (score >= 50)
+            return "You passed" ;
+        else
+            return "Oh, You not pass , Don't give up and try again!";
+    }
+
+    // ---------------------------------------------------------------------------------
+
+    // for Student
+    public Quiz getQuizById(String courseTitle, String quizId) {
+        validateCourse(courseTitle);
+
+        Quiz q = quizWithId.get(quizId);
+        if (q == null)
+            throw new IllegalArgumentException("Quiz not found with ID: " + quizId);
+
+        return q;
+    }
+
+    // -------
+
+    public Map<String , Object> attemptQuiz(String courseTitle , String quizId , int studentId , Map<Integer , String> studnetAnswers){
+
+        Quiz quiz = getQuizById(courseTitle, quizId);
+
+        List<Question> randomQuestions = quiz.getQuestions();
+        Collections.shuffle(randomQuestions);
+
+        int grades = 0 ;
+        for (Question question : randomQuestions) {
+            String correctAnswer = question.getCorrectAnswer();
+            String answerOfStudnet = studnetAnswers.get(question.getId());
+
+            if (answerOfStudnet != null && answerOfStudnet.equalsIgnoreCase(correctAnswer))
+                grades++;
+
+        }
+
+        int totalQuestions = randomQuestions.size();
+        int score = (grades * 100) / totalQuestions;
+
+        quiz.getStudentScores().put(studentId, score);
+        String feedback  = generateFeedback(score, totalQuestions);
+        saveQuizzesToJsonFile();
+
+        Map<String , Object> res = new HashMap<>();
+        res.put("feedback", feedback);
+        res.put("score", score);
+        res.put("randomQuestions", randomQuestions);
+
+        return res;
+    }
+
+    // -------
+
+    public Map<Integer, Map<String , Integer>> getAllStudentGradesForCourse(String courseTitle , int instructorId) {
+        validateInstructorForCourse(instructorId, courseTitle);
+
+        List<Quiz> quizzes = instructorQuizzes.getOrDefault(instructorId, new ArrayList<>());
+
+        if (quizzes.isEmpty())
+            throw new IllegalArgumentException("Quiz not found with ID: " + instructorId);
+
+        Map<Integer, Map<String , Integer>> studentGrades  = new HashMap<>();
+
+        for (Quiz quiz : quizzes) {
+            String quizId = quiz.getAssessmentID();
+
+            for (Map.Entry<Integer, Integer> entry : quiz.getStudentScores().entrySet()) {
+                int studentID = entry.getKey();
+                int grade = entry.getValue();
+
+                studentGrades.putIfAbsent(studentID, new HashMap<>());
+                studentGrades.get(studentID).put(quizId, grade);
+            }
+        }
+        return studentGrades;
+    }
+
+    // -------
+
 }

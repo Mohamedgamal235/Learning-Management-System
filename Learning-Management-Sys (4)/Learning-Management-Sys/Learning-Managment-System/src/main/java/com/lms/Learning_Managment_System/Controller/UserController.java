@@ -23,6 +23,8 @@ public class UserController {
     private ObjectMapper objectMapper = new ObjectMapper();
     private int id_counter = 1;
 
+    private List<Integer> IDs_Instructor = new ArrayList<>();
+
     private Map<String, Integer> loggedInStudents = new HashMap<>();
     private Map<String, Integer> loggedInInstructors = new HashMap<>();
     private Map<String, Integer> loggedInAdmins = new HashMap<>();
@@ -32,6 +34,10 @@ public class UserController {
     public UserController() {
         loadUsersFromFile();
         initCounter();
+    }
+
+    public List<Integer> getInstructorsId(){
+        return IDs_Instructor;
     }
 
     private void initCounter(){
@@ -83,6 +89,7 @@ public class UserController {
                     loggedInStudents.put(email, user.getId());
                 } else if ("instructor".equalsIgnoreCase(user.getRole())) {
                     loggedInInstructors.put(email, user.getId());
+                    IDs_Instructor.add(user.getId());
                 } else if ("admin".equalsIgnoreCase(user.getRole())) {
                     loggedInAdmins.put(email, user.getId());
                 }

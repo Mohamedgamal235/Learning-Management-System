@@ -47,6 +47,8 @@ public class Course_Controller {
     private NotificationService notificationService;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private QuizService quizService;
 
     @PostMapping("/{user_id}/add_course")
     public ResponseEntity<String> addCourse(@RequestBody course newCourse, @PathVariable int user_id) {
@@ -63,6 +65,7 @@ public class Course_Controller {
         }
         if (isInstructor) {
             newCourse.setInstructor_id(user_id);
+            quizService.setIdOfInstructorCourses(user_id , newCourse.getCourse_title());
         }
         service.addCourse(newCourse);
         String message = "Dear Students, we are pleased to announce that a new course, ["+ newCourse.getCourse_title() +"] has been added to the platform. Enroll now to enhance your learning journey and expand your knowledge";
