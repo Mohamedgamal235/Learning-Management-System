@@ -16,4 +16,6 @@ public class course {
     private String course_description;
     private List<lesson> course_lessons = new ArrayList<>();
     private List<Question> questionBank = new ArrayList<>();
+    private int instructor_id;
+    private boolean isAvailableForRegistration ;
 }
