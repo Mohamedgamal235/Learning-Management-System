@@ -15,7 +15,6 @@ import java.util.Map;
     public class ReportService {
 
     private static final String BASE_DIRECTORY = Paths.get(System.getProperty("user.dir"), "generated-reports").toString();
-
     public ReportService() {
         java.io.File directory = new java.io.File(BASE_DIRECTORY);
         if (!directory.exists()) {
