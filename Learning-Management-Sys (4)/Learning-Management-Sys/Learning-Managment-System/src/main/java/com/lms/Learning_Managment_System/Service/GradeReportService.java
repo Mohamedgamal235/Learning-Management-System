@@ -1,8 +1,9 @@
 package com.lms.Learning_Managment_System.Service;
 
 import com.lms.Learning_Managment_System.Controller.UserController;
+import com.lms.Learning_Managment_System.Model.Assignment;
 import com.lms.Learning_Managment_System.Model.User;
-import com.lms.Learning_Managment_System.Model.Quiz;
+import com.lms.Learning_Managment_System.Model.assignmentSubmission;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,8 @@ public class GradeReportService {
     private ReportService reportService;
     @Autowired
     private AttendenceService attendenceService;
+    @Autowired
+    private AssignmentService assignmentService;
 
     public String generateGradeReportForCourse(String courseTitle, int instructorId, String fileName) throws IOException {
         quizService.validateInstructorForCourse(instructorId , courseTitle);
@@ -80,6 +83,36 @@ public class GradeReportService {
         }
 
         return reportService.generateAttendanceReport(attendanceRecords , fileName);
+    }
+
+
+    public String generateAssignmentGradesReport(String courseTitle, int instructorId, String fileName) throws IOException {
+        assignmentService.validateCourse(courseTitle);
+
+        List<Assignment> assignments = assignmentService.getAssignments(courseTitle);
+        List<Map<String, Object>> assignmentGradesData = new ArrayList<>();
+
+        for (Assignment assignment : assignments) {
+            for (assignmentSubmission submission : assignment.getSubmissions()) {
+                User student = userController.getAllUsers().stream()
+                        .filter(user -> user.getId() == Integer.parseInt(submission.getStudentId())
+                                && "student".equalsIgnoreCase(user.getRole()))
+                        .findFirst().orElse(null);
+
+                if (student != null) {
+                    Map<String, Object> record = new HashMap<>();
+                    record.put("email", student.getEmail());
+                    record.put("firstName", student.getFirstName());
+                    record.put("lastName", student.getLastName());
+                    record.put("assignmentId", assignment.getAssessmentID());
+                    record.put("grade", submission.getGrade());
+                    record.put("feedback", submission.getFeedback());
+                    assignmentGradesData.add(record);
+                }
+            }
+        }
+
+        return reportService.generateAssignmentGradesReport(assignmentGradesData, fileName);
     }
 
 }
