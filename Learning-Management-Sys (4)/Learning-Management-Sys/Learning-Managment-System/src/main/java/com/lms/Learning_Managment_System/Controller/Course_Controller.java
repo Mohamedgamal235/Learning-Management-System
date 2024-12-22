@@ -9,9 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lms.Learning_Managment_System.Service.EmailService;
-import com.lms.Learning_Managment_System.Service.NotificationService;
-import com.lms.Learning_Managment_System.Service.student_coursesService;
+import com.lms.Learning_Managment_System.Service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -30,7 +28,6 @@ import com.lms.Learning_Managment_System.Model.Question;
 import com.lms.Learning_Managment_System.Model.course;
 import com.lms.Learning_Managment_System.Model.enrolled_student;
 import com.lms.Learning_Managment_System.Model.lesson;
-import com.lms.Learning_Managment_System.Service.courseService;
 
 
 @RestController
@@ -133,7 +130,7 @@ public class Course_Controller {
         if (!userController.getLoggedInInstructors().containsValue(instructor_id)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access Denied: You must be a logged in instructor to upload files");
         }
-        if (files.isEmpty()) {
+        if (files.isEmpty() || files.stream().anyMatch(MultipartFile::isEmpty)) {
             return ResponseEntity.badRequest().body("No files selected");
         }
 

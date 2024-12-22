@@ -25,7 +25,7 @@ public class courseService {
         saveCoursesToFile();
     }
 
-    public static List<course> getAllCourses() {
+    public  List<course> getAllCourses() {
         return courses;
     }
     public void addLessonToCourse(String courseTitle, lesson newLesson) {
