@@ -34,13 +34,4 @@ public class Assignment extends Assessment {
     public void addSubmission(assignmentSubmission submission) {
         this.submissions.add(submission);
     }
-    public void gradeSubmission(String studentId, String grade, String feedback) {
-        for (assignmentSubmission submission : submissions) {
-            if (submission.getStudentId().equals(studentId)) {
-                submission.setGrade(grade);
-                submission.setFeedback(feedback);
-                break;
-            }
-        }
-    }
 }

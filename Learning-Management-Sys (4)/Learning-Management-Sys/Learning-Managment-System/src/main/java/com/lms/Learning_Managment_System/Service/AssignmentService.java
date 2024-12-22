@@ -20,10 +20,10 @@ import java.util.*;
 @Service
 public class AssignmentService {
     @Autowired
-    private courseService courseService;
+    courseService courseService;
 
     private static final String assignmentsFile = "assignments.json";
-    private static final String STORAGE_DIRECTORY = "G:\\Storage";
+    protected static  String STORAGE_DIRECTORY = "C:\\Storage";
     private Map<String, List<Assignment>> asssignments = new HashMap<>();
     @Autowired
     private com.lms.Learning_Managment_System.Controller.student_courses_Controller student_courses_Controller;
@@ -45,15 +45,13 @@ public class AssignmentService {
 
 
     public List<Assignment> getAssignments(String courseTitle) {
-        validateCourse(courseTitle);
         List<Assignment> courseAssignments = asssignments.getOrDefault(courseTitle.toLowerCase(), new ArrayList<>());
         System.out.println("Assignments for " + courseTitle + ": " + courseAssignments);
         return courseAssignments;
     }
 
 
-    private Assignment getAssignmentById(String courseTitle, String assignmentId) {
-        validateCourse(courseTitle);
+    public Assignment getAssignmentById(String courseTitle, String assignmentId) {
         List<Assignment>crsAssignments=asssignments.getOrDefault(courseTitle, new ArrayList<>());
         return crsAssignments.stream().filter(assignment ->
                 assignment.getAssessmentID().equals(assignmentId)).findFirst().orElseThrow(() -> new IllegalArgumentException("Assignment with ID " + assignmentId + " not found."));
@@ -61,7 +59,6 @@ public class AssignmentService {
 
 
     public void saveFile(MultipartFile file, String courseTitle, String assignmentId, String studentId) throws IOException {
-        validateCourse(courseTitle);
         if(file == null) {
             throw new NullPointerException("File is null");
         }
@@ -104,7 +101,6 @@ public class AssignmentService {
     }
 
     public List<assignmentSubmission> getSubmissionsWithFeedback(String courseTitle, String assignmentId) {
-        validateCourse(courseTitle);
         Assignment assignment = getAssignmentById(courseTitle, assignmentId);
         if (assignment != null) {
             return assignment.getSubmissions();
@@ -122,6 +118,7 @@ public class AssignmentService {
         }
     }
     public Map<String, Object> getProgressAnalytics(String courseTitle) {
+        validateCourse(courseTitle);
         List<Assignment> assignments = getAssignments(courseTitle);
         int totalAssignments = assignments.size();
         int totalSubmissions = 0;
@@ -198,8 +195,6 @@ public class AssignmentService {
             asssignments = new HashMap<>();
         }
     }
-
-
     private void saveAssignmentsToFile() {
         ObjectMapper mapper = new ObjectMapper();
         try {
