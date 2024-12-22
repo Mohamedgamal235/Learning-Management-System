@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
-import java.util.List;
 
 @Service
     public class ReportService {
@@ -91,5 +90,37 @@ import java.util.List;
         saveWorkbook(workbook, filePath);
         return filePath;
     }
+
+    public String generateAssignmentGradesReport(List<Map<String, Object>> assignmentGradesData, String fileName) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Assignment Grades Report");
+
+        // Header row
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Student Email");
+        headerRow.createCell(1).setCellValue("First Name");
+        headerRow.createCell(2).setCellValue("Last Name");
+        headerRow.createCell(3).setCellValue("Assignment ID");
+        headerRow.createCell(4).setCellValue("Grade");
+        headerRow.createCell(5).setCellValue("Feedback");
+
+        // Populate rows with assignment grades data
+        int rowIndex = 1;
+        for (Map<String, Object> record : assignmentGradesData) {
+            Row row = sheet.createRow(rowIndex++);
+            row.createCell(0).setCellValue((String) record.get("email"));
+            row.createCell(1).setCellValue((String) record.get("firstName"));
+            row.createCell(2).setCellValue((String) record.get("lastName"));
+            row.createCell(3).setCellValue((String) record.get("assignmentId"));
+            row.createCell(4).setCellValue((String) record.get("grade")); // Assuming grade is String
+            row.createCell(5).setCellValue((String) record.get("feedback"));
+        }
+
+        // Save the file
+        String filePath = Paths.get(BASE_DIRECTORY, fileName + ".xlsx").toString();
+        saveWorkbook(workbook, filePath);
+        return filePath;
+    }
+
 
 }

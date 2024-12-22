@@ -14,7 +14,7 @@ public class ReportController {
     private GradeReportService gradeReportService;
 
     // Endpoint to generate grades report
-    @PostMapping("/grades")
+    @PostMapping("/quiz/grades")
     public ResponseEntity<String> generateGradesReport(@RequestParam String courseTitle,
                                                        @RequestParam int instructorId,
                                                        @RequestParam String fileName) {
@@ -39,4 +39,18 @@ public class ReportController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/assignments/grades")
+    public ResponseEntity<String> generateAssignmentGradesReport(@RequestParam String courseTitle,
+                                                                 @RequestParam int instructorId,
+                                                                 @RequestParam String fileName) {
+        try {
+            String filePath = gradeReportService.generateAssignmentGradesReport(courseTitle, instructorId, fileName);
+            return new ResponseEntity<>("Assignment Grades Report generated: " + filePath, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
 }
