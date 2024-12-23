@@ -20,7 +20,7 @@ public class student_coursesService {
     private courseService courseService;
 
     private static final String ENROLLED_STUDENTS_FILE = "enrolled_students.json";
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public String enroll_in_Course(int student_id, String course_title) {
         if (!userController.getLoggedInStudents().containsValue(student_id)) {
@@ -55,7 +55,7 @@ public class student_coursesService {
     }
 
 
-    private enrolled_student findEnrolledStudentById(int student_id) {
+    public enrolled_student findEnrolledStudentById(int student_id) {
         try {
             File file = new File(ENROLLED_STUDENTS_FILE);
             if (file.exists()) {
@@ -83,7 +83,7 @@ public class student_coursesService {
         }
         return null;
     }
-    private List<enrolled_student> getAllEnrolledStudents() {
+    private static List<enrolled_student> getAllEnrolledStudents() {
         try {
             File file = new File(ENROLLED_STUDENTS_FILE);
             if (file.exists()) {
@@ -102,7 +102,7 @@ public class student_coursesService {
             e.printStackTrace();
         }
     }
-    public List<enrolled_student> getStudentsEnrolledInCourse(String courseTitle) {
+    public static List<enrolled_student> getStudentsEnrolledInCourse(String courseTitle) {
         List<enrolled_student> enrolledStudents = getAllEnrolledStudents();
         List<enrolled_student> result = new ArrayList<>();
 
