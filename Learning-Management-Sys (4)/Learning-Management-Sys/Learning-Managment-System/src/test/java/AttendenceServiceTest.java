@@ -1,4 +1,4 @@
-package com.lms.Learning_Managment_System;
+//package com.lms.Learning_Managment_System;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ public class AttendenceServiceTest {
     @Test
     void testSuccessfulValidation() throws IOException {
         String email = "fi2195227@gmail.com";
-        String otpNumber = "348933";
+        String otpNumber = "279593";
         String lesson = "Machine Learning";
         assertTrue(attendenceService.validateOTP(email, otpNumber, lesson));
     }
