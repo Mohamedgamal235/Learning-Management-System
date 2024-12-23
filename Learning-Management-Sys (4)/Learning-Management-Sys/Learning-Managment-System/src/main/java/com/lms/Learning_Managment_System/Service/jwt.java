@@ -1,5 +1,5 @@
 //package com.project.userManagement.Service;
-import com.lms.Learning_Managment_System.Service;
+package com.lms.Learning_Managment_System.Service;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.Jwts;
