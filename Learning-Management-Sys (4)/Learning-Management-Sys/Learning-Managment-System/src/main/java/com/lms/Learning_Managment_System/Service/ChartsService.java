@@ -98,29 +98,38 @@ public class ChartsService {
     public void generateCourseCompletionRateChart(String courseTitle) throws IOException {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         List<Assignment> assignments = assignmentService.getAssignments(courseTitle);
+        List<enrolled_student> enrolledStudents = studentCoursesService.getStudentsEnrolledInCourse(courseTitle);
         int totalAssignments = assignments.size();
-        int totalSubmissions = 0;
+        int totalStudents = enrolledStudents.size();
+        int expectedTotalSubmissions = totalAssignments * totalStudents;
+        int actualSubmissions = 0;
         int gradedSubmissions = 0;
 
         for (Assignment assignment : assignments) {
             List<assignmentSubmission> submissions = assignment.getSubmissions();
-            totalSubmissions += submissions.size();
-            for (assignmentSubmission submission : assignment.getSubmissions()) {
-                String grade = submission.getGrade();
-                if (grade != null) {
+            actualSubmissions += submissions.size();
+            for (assignmentSubmission submission : submissions) {
+                if (submission.getGrade() != null) {
                     gradedSubmissions++;
                 }
             }
         }
-        double completionRate = totalAssignments > 0 ? ((double)  gradedSubmissions/ totalSubmissions) * 100 : 0;
-        dataset.addValue(completionRate, "Course Completion Rate", courseTitle);
+
+        double submissionRate = expectedTotalSubmissions > 0 ?
+                ((double) actualSubmissions / expectedTotalSubmissions) * 100 : 0;
+        double gradingRate = actualSubmissions > 0 ?
+                ((double) gradedSubmissions / actualSubmissions) * 100 : 0;
+
+        dataset.addValue(submissionRate, "Submission Rate", courseTitle);
+        dataset.addValue(gradingRate, "Grading Rate", courseTitle);
+
         JFreeChart barChart = ChartFactory.createBarChart(
-                "Course Completion Rate",
+                "Course Progress Rates",
                 "Course",
-                "Completion Rate (%)",
+                "Rate (%)",
                 dataset,
                 PlotOrientation.VERTICAL,
-                false,
+                true,
                 true,
                 false
         );

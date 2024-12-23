@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.lms.Learning_Managment_System.Model.Assignment;
 import com.lms.Learning_Managment_System.Model.assignmentSubmission;
 import com.lms.Learning_Managment_System.Model.course;
+import com.lms.Learning_Managment_System.Model.enrolled_student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,7 @@ import java.util.*;
 public class AssignmentService {
     @Autowired
     courseService courseService;
+    @Autowired student_coursesService studentCoursesService;
 
     private static final String assignmentsFile = "assignments.json";
     protected static  String STORAGE_DIRECTORY = "C:\\Storage";
@@ -121,25 +123,66 @@ public class AssignmentService {
         validateCourse(courseTitle);
         List<Assignment> assignments = getAssignments(courseTitle);
         int totalAssignments = assignments.size();
+        List<enrolled_student> enrolledStudents = studentCoursesService.getStudentsEnrolledInCourse(courseTitle);
+        int totalStudents = enrolledStudents.size();
+        int expectedTotalSubmissions = totalAssignments * totalStudents;
+
         int totalSubmissions = 0;
         int gradedAssignments = 0;
         double totalGrade = 0;
+        Map<String, Integer> submissionsPerStudent = new HashMap<>();
+
         for (Assignment assignment : assignments) {
             List<assignmentSubmission> submissions = assignment.getSubmissions();
             totalSubmissions += submissions.size();
             for (assignmentSubmission submission : submissions) {
+                String studentId = submission.getStudentId();
+                submissionsPerStudent.merge(studentId, 1, Integer::sum);
+
                 if (submission.getGrade() != null) {
                     gradedAssignments++;
-                    totalGrade += Double.parseDouble(submission.getGrade());
+                    try {
+                        totalGrade += Double.parseDouble(submission.getGrade());
+                    } catch (NumberFormatException e) {
+                        System.err.println("Invalid grade format for student " + studentId + ": " + submission.getGrade());
+                    }
                 }
             }
         }
+
+        // Calculate actual completion rate based on submitted vs expected submissions
+        double completionRate = expectedTotalSubmissions > 0
+                ? (totalSubmissions / (double) expectedTotalSubmissions) * 100
+                : 0;
+
+        // Calculate average grade only from graded submissions
+        double averageGrade = gradedAssignments > 0
+                ? totalGrade / gradedAssignments
+                : 0;
+
+        // Calculate student completion statistics
+        int studentsWithAllSubmissions = 0;
+        for (Map.Entry<String, Integer> entry : submissionsPerStudent.entrySet()) {
+            if (entry.getValue() == totalAssignments) {
+                studentsWithAllSubmissions++;
+            }
+        }
+
+        double studentCompletionRate = totalStudents > 0
+                ? (studentsWithAllSubmissions / (double) totalStudents) * 100
+                : 0;
+
         Map<String, Object> progressData = new HashMap<>();
         progressData.put("totalAssignments", totalAssignments);
-        progressData.put("totalSubmissions", totalSubmissions);
-        progressData.put("gradedAssignments", gradedAssignments);
-        progressData.put("averageGrade", totalSubmissions > 0 ? totalGrade / totalSubmissions : 0);
-        progressData.put("completionRate", totalAssignments > 0 ? (gradedAssignments / (double) totalAssignments) * 100 : 0);
+        progressData.put("totalStudents", totalStudents);
+        progressData.put("expectedTotalSubmissions", expectedTotalSubmissions);
+        progressData.put("actualSubmissions", totalSubmissions);
+        progressData.put("gradedSubmissions", gradedAssignments);
+        progressData.put("averageGrade", averageGrade);
+        progressData.put("completionRate", completionRate);
+        progressData.put("studentsWithAllSubmissions", studentsWithAllSubmissions);
+        progressData.put("studentCompletionRate", studentCompletionRate);
+
         return progressData;
     }
 //    public void loadFromJsonFile(){

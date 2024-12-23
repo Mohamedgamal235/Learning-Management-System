@@ -2,6 +2,7 @@ package com.lms.Learning_Managment_System.Service;
 import com.lms.Learning_Managment_System.Model.Assignment;
 import com.lms.Learning_Managment_System.Model.assignmentSubmission;
 import com.lms.Learning_Managment_System.Model.course;
+import com.lms.Learning_Managment_System.Model.enrolled_student;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.mock.web.MockMultipartFile;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mockStatic;
@@ -25,10 +24,11 @@ import static org.mockito.Mockito.mockStatic;
 public class AssignmentServiceTest {
     @InjectMocks
     private AssignmentService assignmentService;
-
+    private List<enrolled_student> enrolledStudents;
     private static final String COURSE_TITLE = "software";
     private static final String ASSIGNMENT_ID = "A1";
     private static final String STUDENT_ID = "1";
+    private static final String STUDENT_ID2 = "3";
     private static final String GRADE = "100";
     private static final String FEEDBACK = "good job";
 
@@ -36,6 +36,14 @@ public class AssignmentServiceTest {
 
     @BeforeEach
     public void setUp() {
+        enrolledStudents = new ArrayList<>();
+        enrolled_student student = new enrolled_student();
+        student.setEnrolled_student_id(Integer.parseInt(STUDENT_ID));
+        student.setEnrolled_student_email("test@test.com");
+        enrolledStudents.add(student);
+        student.setEnrolled_student_id(Integer.parseInt(STUDENT_ID2));
+        student.setEnrolled_student_email("test2@test.com");
+        enrolledStudents.add(student);
         assignmentService.getAssignments(COURSE_TITLE).clear();
         test_crs = new course();
         test_crs.setCourse_title(COURSE_TITLE);
@@ -271,9 +279,14 @@ public class AssignmentServiceTest {
 
     @Test
     public void testGetProgressAnalytics() {
-        try (MockedStatic<courseService> mockedStatic = mockStatic(courseService.class)) {
-            mockedStatic.when(() -> courseService.search_course(COURSE_TITLE))
+        try (MockedStatic<courseService> mockedCourseSvc = mockStatic(courseService.class);
+             MockedStatic<student_coursesService> mockedStudentSvc = mockStatic(student_coursesService.class)) {
+
+            mockedCourseSvc.when(() -> courseService.search_course(COURSE_TITLE))
                     .thenReturn(test_crs);
+            mockedStudentSvc.when(() -> student_coursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
+                    .thenReturn(enrolledStudents
+                    );
 
             Assignment assignment = new Assignment(ASSIGNMENT_ID, "Assignment 1", COURSE_TITLE,
                     "First assignment for Software Engineering", "2024-12-15", "assignment");
@@ -284,17 +297,18 @@ public class AssignmentServiceTest {
             assignmentService.gradeAssignment(COURSE_TITLE, ASSIGNMENT_ID, STUDENT_ID, GRADE, FEEDBACK);
 
             Map<String, Object> progressAnalytics = assignmentService.getProgressAnalytics(COURSE_TITLE);
+
             assertNotNull(progressAnalytics, "Progress analytics should not be null.");
             assertEquals(1, progressAnalytics.get("totalAssignments"), "There should be 1 assignment.");
-            assertEquals(1, progressAnalytics.get("totalSubmissions"), "There should be 1 submission.");
-            assertEquals(1, progressAnalytics.get("gradedAssignments"), "There should be 1 graded assignment.");
-            assertEquals(100.0, progressAnalytics.get("averageGrade"),
-                    "Average grade should be 100.0 since we only have one grade of 100");
-            assertEquals(100.0, progressAnalytics.get("completionRate"),
-                    "Completion rate should be 100% since our only assignment is graded");
-
-            // Test invalid course
-            mockedStatic.when(() -> courseService.search_course("nonexistent"))
+            assertEquals(2, progressAnalytics.get("totalStudents"), "There should be 2 enrolled students.");
+            assertEquals(2, progressAnalytics.get("expectedTotalSubmissions"), "Expected submissions should be totalAssignments * totalStudents.");
+            assertEquals(1, progressAnalytics.get("actualSubmissions"), "There should be 1 actual submission.");
+            assertEquals(1, progressAnalytics.get("gradedSubmissions"), "There should be 1 graded submission.");
+            assertEquals(100.0, progressAnalytics.get("averageGrade"), "Average grade should be 100.0 for the one graded submission.");
+            assertEquals(50.0, progressAnalytics.get("completionRate"), "Completion rate should be 50% (1 submission out of 2 expected).");
+            assertEquals(1, progressAnalytics.get("studentsWithAllSubmissions"), "one student has submitted all assignments.");
+            assertEquals(50.0, progressAnalytics.get("studentCompletionRate"), "Student completion rate should be 50% as one student completed all assignments.");
+            mockedCourseSvc.when(() -> courseService.search_course("nonexistent"))
                     .thenReturn(null);
             String invalidCourse = "nonexistent";
             assertThrows(IllegalArgumentException.class,
@@ -302,37 +316,56 @@ public class AssignmentServiceTest {
                     "Should throw IllegalArgumentException for invalid course");
         }
     }
+
     @Test
     public void testGetProgressAnalytics_WithNoAssignments() {
-        try (MockedStatic<courseService> mockedStatic = mockStatic(courseService.class)) {
-            mockedStatic.when(() -> courseService.search_course(COURSE_TITLE))
+        try (MockedStatic<courseService> mockedCourseSvc = mockStatic(courseService.class);
+             MockedStatic<student_coursesService> mockedStudentSvc = mockStatic(student_coursesService.class)) {
+
+            mockedCourseSvc.when(() -> courseService.search_course(COURSE_TITLE))
                     .thenReturn(test_crs);
+            mockedStudentSvc.when(() -> student_coursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
+                    .thenReturn(enrolledStudents);
 
             Map<String, Object> analytics = assignmentService.getProgressAnalytics(COURSE_TITLE);
+
             assertEquals(0, analytics.get("totalAssignments"));
-            assertEquals(0, analytics.get("totalSubmissions"));
-            assertEquals(0, analytics.get("gradedAssignments"));
+            assertEquals(2, analytics.get("totalStudents"));
+            assertEquals(0, analytics.get("expectedTotalSubmissions"));
+            assertEquals(0, analytics.get("actualSubmissions"));
+            assertEquals(0, analytics.get("gradedSubmissions"));
             assertEquals(0.0, analytics.get("averageGrade"));
             assertEquals(0.0, analytics.get("completionRate"));
+            assertEquals(0, analytics.get("studentsWithAllSubmissions"));
+            assertEquals(0.0, analytics.get("studentCompletionRate"));
         }
     }
 
     @Test
     public void testGetProgressAnalytics_WithUnsubmittedAssignments() {
-        try (MockedStatic<courseService> mockedStatic = mockStatic(courseService.class)) {
-            mockedStatic.when(() -> courseService.search_course(COURSE_TITLE))
+        try (MockedStatic<courseService> mockedCourseSvc = mockStatic(courseService.class);
+             MockedStatic<student_coursesService> mockedStudentSvc = mockStatic(student_coursesService.class)) {
+
+            mockedCourseSvc.when(() -> courseService.search_course(COURSE_TITLE))
                     .thenReturn(test_crs);
+            mockedStudentSvc.when(() -> student_coursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
+                    .thenReturn(enrolledStudents);
 
             Assignment assignment = new Assignment(ASSIGNMENT_ID, "Assignment 1", COURSE_TITLE,
                     "First assignment", "2024-12-15", "assignment");
             assignmentService.addAssignment(COURSE_TITLE, assignment);
 
             Map<String, Object> analytics = assignmentService.getProgressAnalytics(COURSE_TITLE);
+
             assertEquals(1, analytics.get("totalAssignments"));
-            assertEquals(0, analytics.get("totalSubmissions"));
-            assertEquals(0, analytics.get("gradedAssignments"));
+            assertEquals(2, analytics.get("totalStudents"));
+            assertEquals(2, analytics.get("expectedTotalSubmissions"));
+            assertEquals(0, analytics.get("actualSubmissions"));
+            assertEquals(0, analytics.get("gradedSubmissions"));
             assertEquals(0.0, analytics.get("averageGrade"));
             assertEquals(0.0, analytics.get("completionRate"));
+            assertEquals(0, analytics.get("studentsWithAllSubmissions"));
+            assertEquals(0.0, analytics.get("studentCompletionRate"));
         }
     }
     @Test

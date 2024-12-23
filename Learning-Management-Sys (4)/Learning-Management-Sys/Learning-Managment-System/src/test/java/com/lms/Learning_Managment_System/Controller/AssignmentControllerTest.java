@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,6 @@ public class AssignmentControllerTest {
     @Mock
     private UserController userController;
 
-    @Mock
     private student_coursesService studentCoursesService;
 
     @Mock
@@ -79,26 +79,25 @@ public class AssignmentControllerTest {
 
         when(userController.getLoggedInInstructors()).thenReturn(loggedInInstructors);
         when(userController.getLoggedInStudents()).thenReturn(loggedInStudents);
-        when(studentCoursesService.getStudentsEnrolledInCourse(anyString()))
-                .thenReturn(enrolledStudents);
     }
 
     @Test
     void addAssignment_Success() {
-        doNothing().when(assignmentService).addAssignment(eq(COURSE_TITLE), eq(testAssignment));
-        when(studentCoursesService.getStudentsEnrolledInCourse(eq(COURSE_TITLE)))
-                .thenReturn(enrolledStudents);
-        ResponseEntity<?> response = assignmentController.addAssignment(
-                COURSE_TITLE,
-                testAssignment,
-                INSTRUCTOR_ID
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Assignment added successfully", response.getBody());
-        verify(assignmentService).addAssignment(eq(COURSE_TITLE), eq(testAssignment));
-        verify(studentCoursesService).getStudentsEnrolledInCourse(eq(COURSE_TITLE));
-        verify(notificationService).add(anyString(), anyInt());
-        verify(mailService).sendMail(anyString(), anyString(), anyString());
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            doNothing().when(assignmentService).addAssignment(eq(COURSE_TITLE), eq(testAssignment));
+            ResponseEntity<?> response = assignmentController.addAssignment(
+                    COURSE_TITLE,
+                    testAssignment,
+                    INSTRUCTOR_ID
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Assignment added successfully", response.getBody());
+            verify(assignmentService).addAssignment(eq(COURSE_TITLE), eq(testAssignment));
+            verify(notificationService).add(anyString(), anyInt());
+            verify(mailService).sendMail(anyString(), anyString(), anyString());
+        }
     }
     @Test
     void addAssignment_UnauthorizedInstructor() {
@@ -139,66 +138,75 @@ public class AssignmentControllerTest {
 
     @Test
     void uploadAssignmentFile_Success() throws IOException {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test.pdf",
-                "application/pdf",
-                "test content".getBytes()
-        );
-        when(studentCoursesService.getStudentsEnrolledInCourse("Java Course"))
-                .thenReturn(enrolledStudents);
-        ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
-                "Java Course",
-                "A123",
-                "1",
-                file
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("File uploaded successfully.", response.getBody());
-        verify(assignmentService).saveFile(file, "Java Course", "A123", "1");
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "test.pdf",
+                    "application/pdf",
+                    "test content".getBytes()
+            );
+            ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
+                    COURSE_TITLE,
+                    ASSIGNMENT_ID,
+                    String.valueOf(STUDENT_ID),
+                    file
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("File uploaded successfully.", response.getBody());
+            verify(assignmentService).saveFile(file, COURSE_TITLE, ASSIGNMENT_ID, String.valueOf(STUDENT_ID));
+        }
     }
     @Test
     void uploadAssignmentFile_StudentNotEnrolled() throws IOException {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test.pdf",
-                "application/pdf",
-                "test content".getBytes()
-        );
-        when(studentCoursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
-                .thenReturn(new ArrayList<>()); // Empty list means student not enrolled
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(new ArrayList<>());
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "test.pdf",
+                    "application/pdf",
+                    "test content".getBytes()
+            );
 
-        ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
-                COURSE_TITLE,
-                ASSIGNMENT_ID,
-                String.valueOf(STUDENT_ID),
-                file
-        );
+            ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
+                    COURSE_TITLE,
+                    ASSIGNMENT_ID,
+                    String.valueOf(STUDENT_ID),
+                    file
+            );
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals("Access Denied: The student is not enrolled in this course", response.getBody());
-        verify(assignmentService, never()).saveFile(any(), anyString(), anyString(), anyString());
+            assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+            assertEquals("Access Denied: The student is not enrolled in this course", response.getBody());
+            verify(assignmentService, never()).saveFile(any(), anyString(), anyString(), anyString());
+        }
     }
     @Test
     void uploadAssignmentFile_IOExceptionHandling() throws IOException {
-        MockMultipartFile file = new MockMultipartFile(
-                "file",
-                "test.pdf",
-                "application/pdf",
-                "test content".getBytes()
-        );
-        doThrow(new IOException("File processing error"))
-                .when(assignmentService).saveFile(any(), anyString(), anyString(), anyString());
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "test.pdf",
+                    "application/pdf",
+                    "test content".getBytes()
+            );
+            doThrow(new IOException("File processing error"))
+                    .when(assignmentService).saveFile(any(), anyString(), anyString(), anyString());
 
-        ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
-                COURSE_TITLE,
-                ASSIGNMENT_ID,
-                String.valueOf(STUDENT_ID),
-                file
-        );
+            ResponseEntity<?> response = assignmentController.uploadAssignmentFile(
+                    COURSE_TITLE,
+                    ASSIGNMENT_ID,
+                    String.valueOf(STUDENT_ID),
+                    file
+            );
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
-        assertTrue(response.getBody().toString().contains("Error uploading file"));
+            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
+            assertTrue(response.getBody().toString().contains("Error uploading file"));
+        }
     }
     @Test
     void uploadAssignmentFile_UnauthorizedStudent() throws IOException {
@@ -220,22 +228,24 @@ public class AssignmentControllerTest {
 
     @Test
     void gradeAssignment_Success() {
-        when(studentCoursesService.getStudentsEnrolledInCourse(eq(COURSE_TITLE)))
-                .thenReturn(enrolledStudents);
-        when(assignmentService.getassinmentnameBYID(anyString(), anyString()))
-                .thenReturn("Test Assignment");
-        ResponseEntity<?> response = assignmentController.gradeAssignment(
-                "Java Course",
-                "A123",
-                "1",
-                INSTRUCTOR_ID,
-                "90",
-                "Good work!"
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(assignmentService).gradeAssignment("Java Course", "A123", "1", "90", "Good work!");
-        verify(notificationService).add(anyString(), eq(1));
-        verify(emailService).sendMail(anyString(), anyString(), anyString());
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            when(assignmentService.getassinmentnameBYID(anyString(), anyString()))
+                    .thenReturn("Test Assignment");
+            ResponseEntity<?> response = assignmentController.gradeAssignment(
+                    "Java Course",
+                    "A123",
+                    "1",
+                    INSTRUCTOR_ID,
+                    "90",
+                    "Good work!"
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            verify(assignmentService).gradeAssignment("Java Course", "A123", "1", "90", "Good work!");
+            verify(notificationService).add(anyString(), eq(1));
+            verify(emailService).sendMail(anyString(), anyString(), anyString());
+        }
     }
     @Test
     void gradeAssignment_UnauthorizedInstructor() {
@@ -254,40 +264,44 @@ public class AssignmentControllerTest {
     }
     @Test
     void gradeAssignment_StudentNotEnrolled() {
-        when(studentCoursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
-                .thenReturn(new ArrayList<>()); // Empty list means student not enrolled
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(new ArrayList<>());
 
-        ResponseEntity<?> response = assignmentController.gradeAssignment(
-                COURSE_TITLE,
-                ASSIGNMENT_ID,
-                String.valueOf(STUDENT_ID),
-                INSTRUCTOR_ID,
-                "90",
-                "Good work!"
-        );
+            ResponseEntity<?> response = assignmentController.gradeAssignment(
+                    COURSE_TITLE,
+                    ASSIGNMENT_ID,
+                    String.valueOf(STUDENT_ID),
+                    INSTRUCTOR_ID,
+                    "90",
+                    "Good work!"
+            );
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals("Access Denied: The student is not enrolled in this course", response.getBody());
+            assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+            assertEquals("Access Denied: The student is not enrolled in this course", response.getBody());
+        }
     }
     @Test
     void getFeedback_Success() {
-        List<assignmentSubmission> submissions = new ArrayList<>();
-        assignmentSubmission submission = new assignmentSubmission("1", "path/to/file");
-        submission.setGrade("90");
-        submission.setFeedback("Good work!");
-        submissions.add(submission);
-        when(studentCoursesService.getStudentsEnrolledInCourse("Java Course"))
-                .thenReturn(enrolledStudents);
-        when(assignmentService.getSubmissionsWithFeedback("Java Course", "A123"))
-                .thenReturn(submissions);
-        ResponseEntity<?> response = assignmentController.getFeedback(
-                "Java Course",
-                "A123",
-                "1"
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Grade: 90"));
-        assertTrue(response.getBody().toString().contains("Feedback: Good work!"));
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            List<assignmentSubmission> submissions = new ArrayList<>();
+            assignmentSubmission submission = new assignmentSubmission("1", "path/to/file");
+            submission.setGrade("90");
+            submission.setFeedback("Good work!");
+            submissions.add(submission);
+            when(assignmentService.getSubmissionsWithFeedback("Java Course", "A123"))
+                    .thenReturn(submissions);
+            ResponseEntity<?> response = assignmentController.getFeedback(
+                    "Java Course",
+                    "A123",
+                    "1"
+            );
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertTrue(response.getBody().toString().contains("Grade: 90"));
+            assertTrue(response.getBody().toString().contains("Feedback: Good work!"));
+        }
     }
     @Test
     void getFeedback_UnauthorizedStudent() {
@@ -303,37 +317,45 @@ public class AssignmentControllerTest {
 
     @Test
     void getFeedback_NoSubmissionFound() {
-        when(assignmentService.getSubmissionsWithFeedback(COURSE_TITLE, ASSIGNMENT_ID))
-                .thenReturn(new ArrayList<>()); // Empty list means no submission found
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            when(assignmentService.getSubmissionsWithFeedback(COURSE_TITLE, ASSIGNMENT_ID))
+                    .thenReturn(new ArrayList<>()); // Empty list means no submission found
 
-        ResponseEntity<?> response = assignmentController.getFeedback(
-                COURSE_TITLE,
-                ASSIGNMENT_ID,
-                String.valueOf(STUDENT_ID)
-        );
+            ResponseEntity<?> response = assignmentController.getFeedback(
+                    COURSE_TITLE,
+                    ASSIGNMENT_ID,
+                    String.valueOf(STUDENT_ID)
+            );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Submission not found.", response.getBody());
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            assertEquals("Submission not found.", response.getBody());
+        }
     }
 
     @Test
     void getAssignments_Success() {
-        List<Assignment> assignments = new ArrayList<>();
-        assignments.add(testAssignment);
-        when(studentCoursesService.getStudentsEnrolledInCourse("Java Course"))
-                .thenReturn(enrolledStudents);
-        when(assignmentService.getAssignments("Java Course"))
-                .thenReturn(assignments);
-        ResponseEntity<?> response = assignmentController.getAssignments(
-                "1",
-                "Java Course"
-        );
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody() instanceof List);
-        List<?> resultList = (List<?>) response.getBody();
-        assertFalse(resultList.isEmpty());
-        assertEquals(1, resultList.size());
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
+                    .thenReturn(enrolledStudents);
+
+            List<Assignment> assignments = new ArrayList<>();
+            assignments.add(testAssignment);
+            when(assignmentService.getAssignments(COURSE_TITLE)).thenReturn(assignments);
+
+            ResponseEntity<?> response = assignmentController.getAssignments(
+                    String.valueOf(STUDENT_ID),
+                    COURSE_TITLE
+            );
+
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertTrue(response.getBody() instanceof List);
+            List<?> resultList = (List<?>) response.getBody();
+            assertFalse(resultList.isEmpty());
+            assertEquals(1, resultList.size());
+        }
     }
     @Test
     void getAssignments_UnauthorizedStudent() {
@@ -348,42 +370,52 @@ public class AssignmentControllerTest {
 
     @Test
     void getAssignments_StudentNotEnrolled() {
-        when(studentCoursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
-                .thenReturn(new ArrayList<>()); // Empty list means student not enrolled
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(COURSE_TITLE))
+                    .thenReturn(new ArrayList<>()); // Empty list means student not enrolled
 
-        ResponseEntity<?> response = assignmentController.getAssignments(
-                String.valueOf(STUDENT_ID),
-                COURSE_TITLE
-        );
+            ResponseEntity<?> response = assignmentController.getAssignments(
+                    String.valueOf(STUDENT_ID),
+                    COURSE_TITLE
+            );
 
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals("Access Denied: You are not enrolled in this course", response.getBody());
+            assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+            assertEquals("Access Denied: You are not enrolled in this course", response.getBody());
+        }
     }
 
     @Test
     void getAssignments_EmptyAssignmentsList() {
-        when(assignmentService.getAssignments(COURSE_TITLE))
-                .thenReturn(new ArrayList<>()); // Empty assignments list
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            when(assignmentService.getAssignments(COURSE_TITLE))
+                    .thenReturn(new ArrayList<>()); // Empty assignments list
 
-        ResponseEntity<?> response = assignmentController.getAssignments(
-                String.valueOf(STUDENT_ID),
-                COURSE_TITLE
-        );
+            ResponseEntity<?> response = assignmentController.getAssignments(
+                    String.valueOf(STUDENT_ID),
+                    COURSE_TITLE
+            );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        }
     }
 
     @Test
     void getAssignments_CourseNotFound() {
-        when(assignmentService.getAssignments(COURSE_TITLE))
-                .thenThrow(new IllegalArgumentException("Course not found"));
+        try (MockedStatic<student_coursesService> mockedStatic = mockStatic(student_coursesService.class)) {
+            mockedStatic.when(() -> student_coursesService.getStudentsEnrolledInCourse(anyString()))
+                    .thenReturn(enrolledStudents);
+            when(assignmentService.getAssignments(COURSE_TITLE))
+                    .thenThrow(new IllegalArgumentException("Course not found"));
 
-        ResponseEntity<?> response = assignmentController.getAssignments(
-                String.valueOf(STUDENT_ID),
-                COURSE_TITLE
-        );
+            ResponseEntity<?> response = assignmentController.getAssignments(
+                    String.valueOf(STUDENT_ID),
+                    COURSE_TITLE
+            );
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+            assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        }
     }
     @Test
     void trackSubmissions_Success() {
