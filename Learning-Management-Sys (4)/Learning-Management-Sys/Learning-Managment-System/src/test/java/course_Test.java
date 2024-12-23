@@ -8,14 +8,12 @@ import com.lms.Learning_Managment_System.Model.lesson;
 import com.lms.Learning_Managment_System.Service.courseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +41,8 @@ public class course_Test {
 
     @Mock
     private QuizService quizService;
+    @Mock
+    private NotificationService notificationService;
     @InjectMocks
     private Course_Controller controller;
 
@@ -192,6 +192,31 @@ public class course_Test {
         ResponseEntity<String> response = controller.addCourse(newCourse, valid_user_id);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals("Access Denied: You must be a logged-in instructor or admin to add a new course.", response.getBody());
+    }
+    @Test
+    void addnotification_success() {
+        Map<String, Integer> students = Map.of(
+                "fatmaayman9999@gmail.com", 1,
+                "saramohamed0103@gmail.com", 2
+        );
+
+        Mockito.when(userController.getLoggedInInstructors()).thenReturn(Map.of("sara", valid_user_id));
+        Mockito.when(userController.getLoggedInStudents()).thenReturn(students);
+        Mockito.when(userController.getLoggedInAdmins()).thenReturn(new HashMap<>());
+        try (MockedStatic<courseService> mockedCourseService = mockStatic(courseService.class)) {
+            mockedCourseService.when(() -> courseService.search_course(testCourse.getCourse_title())).thenReturn(null);
+            doNothing().when(quizService).setIdOfInstructorCourses(valid_user_id, testCourse.getCourse_title());
+            String expectedNotification = "Dear Students, we are pleased to announce that a new course, [" +testCourse.getCourse_title()+ "] has been added to the platform. Enroll now to enhance your learning journey and expand your knowledge";
+            String expectedSubject = "New Course Available – Enroll Now to Start Learning!";
+
+            ResponseEntity<String> response = controller.addCourse(testCourse, valid_user_id);
+            assertEquals(HttpStatus.OK, response.getStatusCode());
+            assertEquals("Course added successfully. 1 lessons.", response.getBody());
+            verify(notificationService, times(2)).add(eq(expectedNotification), anyInt());
+            verify(emailService, times(2)).sendMail(anyString(), eq(expectedSubject), anyString());
+            verify(quizService).setIdOfInstructorCourses(valid_user_id, testCourse.getCourse_title());
+
+        }
     }
 
 }
