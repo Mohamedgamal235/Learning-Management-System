@@ -2,7 +2,9 @@ package com.lms.Learning_Managment_System.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lms.Learning_Managment_System.Model.User;
-
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import com.lms.Learning_Managment_System.Service.jwt;
 import com.lms.Learning_Managment_System.Service.EmailService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ public class UserController {
     private Map<String, Integer> loggedInAdmins = new HashMap<>();
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private jwt jwt;
 
     public UserController() {
         loadUsersFromFile();
@@ -85,6 +89,8 @@ public class UserController {
     public String loginUser(@RequestParam String email, @RequestParam String password) {
         for (User user : getAllUsers()) {
             if (user.getEmail().equals(email) && user.getPassword().equals(password)) {
+                String token = jwt.generateToken(user.getEmail(),user.getRole());
+
                 if ("student".equalsIgnoreCase(user.getRole())) {
                     loggedInStudents.put(email, user.getId());
                 } else if ("instructor".equalsIgnoreCase(user.getRole())) {
@@ -93,11 +99,33 @@ public class UserController {
                 } else if ("admin".equalsIgnoreCase(user.getRole())) {
                     loggedInAdmins.put(email, user.getId());
                 }
-                return "Successful Login, Hi " + user.getFirstName();
+                return "Successful Login, Hi " + user.getFirstName() + ", Token: " + token;
+                // should generate token for user logged in
             }
         }
         return "Login Failed, Invalid email or password.";
     }
+
+     ///  Just for testing will be deleted if testing was successful
+    /// To test it using postman:
+    /// http://localhost:8080/user/login?email=hok.doe@example.com&password=password123
+    /// http://localhost:8080/user/course/create
+        @PostMapping("/course/create")
+        public ResponseEntity<String> createCourse(@RequestHeader("Authorization") String token) {
+            // Extract role from the JWT token
+            String role = jwt.getRoleFromToken(token);
+            if (role == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Unauthorized: Invalid token.");
+            }
+            if ("INSTRUCTOR".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body("Course Created");
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("Unauthorized Access");
+            }
+        }
 
     public Map<String, Integer> getLoggedInStudents() {
         return loggedInStudents;
