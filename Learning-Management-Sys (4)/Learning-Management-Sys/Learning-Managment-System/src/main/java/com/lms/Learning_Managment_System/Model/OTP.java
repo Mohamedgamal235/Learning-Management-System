@@ -7,7 +7,7 @@ public class OTP {
     private String otp;
     private String email;
     private String lesson;
-
+     public OTP() {}
     public OTP(int id, String otp, String email, String lesson) {
         this.otp = otp;
         this.email = email;
@@ -22,6 +22,26 @@ public class OTP {
     public int getId() {
 
         return id;
+    }
+
+    public String getOtp() {
+        return otp;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setOtp(String otp) {
+        this.otp = otp;
+    }
+
+    public void setLesson(String lesson) {
+        this.lesson = lesson;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getLesson() {

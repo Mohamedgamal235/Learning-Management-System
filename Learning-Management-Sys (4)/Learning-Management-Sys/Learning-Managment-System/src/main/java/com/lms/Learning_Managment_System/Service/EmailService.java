@@ -28,6 +28,7 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
     public void sendOTPViaEmail(int id , String to ,  String name , String lesson ){
+
         System.out.println(fromEmail);
         System.out.println("Sending OTP Via Email...");
         String otp = generateOTP(id , to , lesson) ;
@@ -71,34 +72,38 @@ public class EmailService {
         String otp = String.valueOf(otpValue);
         System.out.println("OTP : " + otp);
         OTP otpInfo = new OTP(accountNumber, otp, email , lesson);
-        saveOtpInfoToFile(otpInfo);  // Save OTP to file
+        otpInfo.setOtp(otp);
+        otpInfo.setEmail(email);
+        System.out.println(otpInfo.getOtp());
+        System.out.println(otpInfo.getEmail());
+        saveOtpInfoToFile(otpInfo , JSON_FILE_PATH);  // Save OTP to file
         return otp;
     }
 
-    private void saveOtpInfoToFile(OTP otpInfo) {
+    public void saveOtpInfoToFile(OTP otpInfo, String path) {
         ObjectMapper objectMapper = new ObjectMapper();
-        File file = new File(JSON_FILE_PATH);
+        File file = new File(path);
 
         try {
-            if (!file.exists()) {
-                file.createNewFile(); 
-            }
-            
             List<OTP> otpList = new ArrayList<>();
-            
-            if (file.length() > 0) {
-             
-                OTP[] existingData = objectMapper.readValue(file, OTP[].class);
-                otpList.addAll(Arrays.asList(existingData)); // Add existing OTPs to the list
+
+            if (file.exists()) {
+                OTP[] existingOtps = objectMapper.readValue(file, OTP[].class);
+                otpList.addAll(Arrays.asList(existingOtps));
             }
 
             otpList.add(otpInfo);
+
+            // Log the serialized data for debugging
+            System.out.println("Serialized Data: " + objectMapper.writeValueAsString(otpList));
+
             objectMapper.writeValue(file, otpList);
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
 
 }

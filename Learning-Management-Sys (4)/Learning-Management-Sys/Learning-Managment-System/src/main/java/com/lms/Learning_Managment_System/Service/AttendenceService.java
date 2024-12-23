@@ -56,6 +56,7 @@ public class AttendenceService {
     }
 
     public Boolean validateOTP(String email, String otpNumber , String Lesson) throws IOException {
+        System.out.println("info : " + email + " " + otpNumber + " " + Lesson);
         ObjectMapper mapper = new ObjectMapper();
         try {
             JsonNode jsonArray = mapper.readTree(new File(OTP_FILE_PATH));
@@ -63,6 +64,7 @@ public class AttendenceService {
             for (JsonNode node : jsonArray) {
                 String Email = node.get("email").asText();
                 String otp = node.get("otp").asText();
+                System.out.println("otp" + otp);
                 String lesson = node.get("lesson").asText() ;
                  pair = new pair(otp , lesson) ;
                 otpInfo.put(Email,pair);  // Store email and OTP and lwsson in the map
