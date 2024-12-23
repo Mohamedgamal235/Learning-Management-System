@@ -28,6 +28,8 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
     public void sendOTPViaEmail(int id , String to ,  String name , String lesson ){
+        if(fromEmail == null)
+            fromEmail = "fatmaibrahim1210@gmail.com" ;
         System.out.println(fromEmail);
         System.out.println("Sending OTP Via Email...");
         String otp = generateOTP(id , to , lesson) ;
@@ -47,22 +49,6 @@ public class EmailService {
             System.out.println("Failed to send email: " + e.getMessage());
         }
     }
-    public void sendMail(String toEmail,String subject, String body){
-        SimpleMailMessage message = new SimpleMailMessage() ;
-        message.setFrom(fromEmail);
-        message.setTo(toEmail);
-        message.setSubject(subject);
-        message.setText(body);
-        try {
-            mailSender.send(message);
-            System.out.println("Email sent successfully...");
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Failed to send email: " + e.getMessage());
-        }
-
-    }
     private static final String JSON_FILE_PATH = "OTP.json";
 
     public String generateOTP(int accountNumber, String email , String lesson) {
@@ -71,23 +57,23 @@ public class EmailService {
         String otp = String.valueOf(otpValue);
         System.out.println("OTP : " + otp);
         OTP otpInfo = new OTP(accountNumber, otp, email , lesson);
-        saveOtpInfoToFile(otpInfo);  // Save OTP to file
+        saveOtpInfoToFile(otpInfo , JSON_FILE_PATH);  // Save OTP to file
         return otp;
     }
 
-    private void saveOtpInfoToFile(OTP otpInfo) {
+    public void saveOtpInfoToFile(OTP otpInfo , String path) {
         ObjectMapper objectMapper = new ObjectMapper();
-        File file = new File(JSON_FILE_PATH);
+        File file = new File(path);
 
         try {
             if (!file.exists()) {
-                file.createNewFile(); 
+                file.createNewFile();
             }
-            
+
             List<OTP> otpList = new ArrayList<>();
-            
+
             if (file.length() > 0) {
-             
+
                 OTP[] existingData = objectMapper.readValue(file, OTP[].class);
                 otpList.addAll(Arrays.asList(existingData)); // Add existing OTPs to the list
             }
