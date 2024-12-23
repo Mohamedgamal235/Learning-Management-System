@@ -49,16 +49,16 @@ public class UserController {
         id_counter = maxID+1;
     }
 
-   @PostMapping("/register")
+    @PostMapping("/register")
     public String registerUser(@RequestBody User user) {
         // Check if email already exists in any list
         if (isEmailExists(user.getEmail())) {
             return "Registration Failed, A user with this email address already exists";
         }
-       if (user.getEmail() == null || user.getEmail().isEmpty() ||
-               user.getRole() == null || user.getRole().isEmpty()) {
-           return "Registration Failed: Missing required fields";
-       }
+        if (user.getEmail() == null || user.getEmail().isEmpty() ||
+                user.getRole() == null || user.getRole().isEmpty()) {
+            return "Registration Failed: Missing required fields";
+        }
         // Add user to the appropriate list based on role
         user.setId(id_counter++);
         if ("student".equalsIgnoreCase(user.getRole())) {
@@ -106,26 +106,26 @@ public class UserController {
         return "Login Failed, Invalid email or password.";
     }
 
-     ///  Just for testing will be deleted if testing was successful
+    ///  Just for testing will be deleted if testing was successful
     /// To test it using postman:
     /// http://localhost:8080/user/login?email=hok.doe@example.com&password=password123
     /// http://localhost:8080/user/course/create
-        @PostMapping("/course/create")
-        public ResponseEntity<String> createCourse(@RequestHeader("Authorization") String token) {
-            // Extract role from the JWT token
-            String role = jwt.getRoleFromToken(token);
-            if (role == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Unauthorized: Invalid token.");
-            }
-            if ("INSTRUCTOR".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
-                return ResponseEntity.status(HttpStatus.OK)
-                        .body("Course Created");
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Unauthorized Access");
-            }
+    @PostMapping("/course/create")
+    public ResponseEntity<String> createCourse(@RequestHeader("Authorization") String token) {
+        // Extract role from the JWT token
+        String role = jwt.getRoleFromToken(token);
+        if (role == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Unauthorized: Invalid token.");
         }
+        if ("INSTRUCTOR".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body("Course Created");
+        } else {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Unauthorized Access");
+        }
+    }
 
     public Map<String, Integer> getLoggedInStudents() {
         return loggedInStudents;
@@ -196,8 +196,8 @@ public class UserController {
             }
         }
         return null;
-    } 
-      public String getEmailById(int id){
+    }
+    public String getEmailById(int id){
         for (User user : students) {
             if (user.getId() == id) {
                 return user.getEmail();
@@ -206,4 +206,3 @@ public class UserController {
         return null;
     }
 }
-
