@@ -23,7 +23,6 @@ public class ReportController {
     @Autowired
     private courseService courseservice;
 
-    // Endpoint to generate grades report
     @PostMapping("/quiz/grades")
     public ResponseEntity<String> generateGradesReport(@RequestParam String courseTitle,
                                                        @RequestParam int userID,
@@ -37,16 +36,16 @@ public class ReportController {
         }
 
         try {
-            List<course> crss = courseService.getAllCourses();
+            List<course> crss = courseservice.getAllCourses();
             int instructorID = -1 ;
             for (course crs : crss){
-                if (crs.getCourse_title().equals(courseTitle)){
+                if (crs.getCourse_title().equalsIgnoreCase(courseTitle)){
                     instructorID = crs.getInstructor_id();
                 }
             }
             if (instructorID == -1)
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("This instructor not on course ");
+                        .body("This course not Found");
 
             String filePath = gradeReportService.generateGradeReportForCourse(courseTitle, instructorID, fileName);
             return new ResponseEntity<>("Grades report generated: " + filePath , HttpStatus.OK);
@@ -58,7 +57,16 @@ public class ReportController {
 
     // Endpoint to generate attendance report
     @PostMapping("/attendance")
-    public ResponseEntity<String> generateAttendanceReport(@RequestParam String fileName) {
+    public ResponseEntity<String> generateAttendanceReport(@RequestParam String fileName,
+                                                           @RequestParam int userID) {
+
+        boolean isInstructor = userController.getLoggedInInstructors().containsValue(userID);
+        boolean isAdmin = userController.getLoggedInAdmins().containsValue(userID);
+
+        if (!isInstructor && !isAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("Access Denied: You must be a logged-in instructor or admin to add a new course.");
+        }
 
         try {
             String filePath = gradeReportService.generateAttendanceReportForLessons(fileName);
@@ -82,19 +90,20 @@ public class ReportController {
                     .body("Access Denied: You must be a logged-in instructor or admin to add a new course.");
         }
 
-        List<course> crss = courseService.getAllCourses();
-        int instructorID = -1 ;
+        List<course> crss = courseservice.getAllCourses();
+        boolean found = false ;
         for (course crs : crss){
-            if (crs.getCourse_title().equals(courseTitle)){
-                instructorID = crs.getInstructor_id();
+            if (crs.getCourse_title().equalsIgnoreCase(courseTitle)){
+                found = true ;
+                break;
             }
         }
-        if (instructorID == -1)
+        if (!found)
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("This instructor not on course ");
+                    .body("This course not Found");
 
         try {
-            String filePath = gradeReportService.generateAssignmentGradesReport(courseTitle, instructorID, fileName);
+            String filePath = gradeReportService.generateAssignmentGradesReport(courseTitle, fileName);
             return new ResponseEntity<>("Assignment Grades Report generated: " + filePath, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
