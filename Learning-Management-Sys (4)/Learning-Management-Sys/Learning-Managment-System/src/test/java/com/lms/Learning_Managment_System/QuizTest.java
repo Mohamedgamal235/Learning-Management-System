@@ -98,11 +98,11 @@ public class QuizTest {
     @Test
     @Order(5)
     void generateFeedback() {
-        assertEquals("Excellent work!", quizService.generateFeedback(90, 10));
-        assertEquals("Very Good!", quizService.generateFeedback(75, 10));
-        assertEquals("Good!", quizService.generateFeedback(60, 10));
-        assertEquals("You passed", quizService.generateFeedback(50, 10));
-        assertEquals("Oh, You not pass , Don't give up and try again!", quizService.generateFeedback(40, 10));
+        assertEquals("Excellent work!", quizService.generateFeedback(90));
+        assertEquals("Very Good!", quizService.generateFeedback(75));
+        assertEquals("Good!", quizService.generateFeedback(60));
+        assertEquals("You passed", quizService.generateFeedback(50));
+        assertEquals("Oh, You not pass , Don't give up and try again!", quizService.generateFeedback(40));
     }
 
     @Test
