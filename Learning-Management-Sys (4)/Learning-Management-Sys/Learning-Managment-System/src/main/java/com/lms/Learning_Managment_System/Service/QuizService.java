@@ -27,8 +27,6 @@ public class QuizService {
     private Map<Integer, List<Quiz>> instructorQuizzes = new HashMap<>();
     private Map<Integer, String> instructorCourses = new HashMap<>();
     private Map<String , Quiz> quizWithId = new HashMap<>();
-    @Autowired
-    private UserController userController;
 
     public void setCourseService(courseService courseService) {
         this.courseService = courseService;
@@ -106,8 +104,8 @@ public class QuizService {
         quiz.setCourseTitle(courseTitle);
         quiz.setType("quiz");
 
-        validateInstructorForCourse(instructorID, courseTitle);
         validateCourse(courseTitle);
+        validateInstructorForCourse(instructorID, courseTitle);
 
         course crs = courseService.search_course(courseTitle);
 
@@ -119,7 +117,6 @@ public class QuizService {
         Collections.shuffle(crs.getQuestionBank());
         List<Question> selectedQuestions = crs.getQuestionBank().stream().limit(3).collect(Collectors.toList());
         quiz.setQuestions(selectedQuestions);
-
 
         instructorQuizzes.computeIfAbsent(instructorID, k -> new ArrayList<>()).add(quiz);
         instructorCourses.putIfAbsent(instructorID, courseTitle);
@@ -159,9 +156,10 @@ public class QuizService {
         List<Quiz> quizzes = instructorQuizzes.getOrDefault(instructorID, new ArrayList<>());
 
         quizzes.removeIf(quiz -> quiz.getAssessmentID().equals(quizId));
-        if (quizzes.isEmpty()) {
+
+        if (quizzes.isEmpty())
             instructorQuizzes.remove(instructorID);
-        }
+
 
         saveQuizzesToJsonFile();
     }
@@ -182,12 +180,12 @@ public class QuizService {
 
         for (Map.Entry<Integer, List<Quiz>> entry : instructorQuizzes.entrySet()) {
             int instructorID = entry.getKey();
-            String courseTitle = instructorCourses.get(instructorID);
             List<Quiz> quizzes = entry.getValue();
+            String courseTitle = instructorCourses.get(instructorID);
 
             Map<String, Object> courseData = new HashMap<>();
             courseData.put("courseTitle", courseTitle);
-            courseData.put("assessments", quizzes);
+            courseData.put("quizzes", quizzes);
 
             output.add(courseData);
         }
@@ -202,7 +200,7 @@ public class QuizService {
 
     // ---------------------------------------------------------------------------------
 
-    public String generateFeedback(int score, int totalQuestions) {
+    public String generateFeedback(int score) {
         if (score >= 85)
             return "Excellent work!" ;
         else if (score >= 70)
@@ -233,31 +231,29 @@ public class QuizService {
     public Map<String , Object> attemptQuiz(String courseTitle , String quizId , int studentId , Map<Integer , String> studnetAnswers){
 
         Quiz quiz = getQuizById(courseTitle, quizId);
-
-        List<Question> randomQuestions = quiz.getQuestions();
-        Collections.shuffle(randomQuestions);
+        List<Question> questions = quiz.getQuestions();
 
         int grades = 0 ;
-        for (Question question : randomQuestions) {
+        for (Question question : questions) {
             String correctAnswer = question.getCorrectAnswer();
             String answerOfStudnet = studnetAnswers.get(question.getId());
 
-            if (answerOfStudnet != null && answerOfStudnet.equalsIgnoreCase(correctAnswer))
+            if (answerOfStudnet.equalsIgnoreCase(correctAnswer))
                 grades++;
 
         }
 
-        int totalQuestions = randomQuestions.size();
+        int totalQuestions = questions.size();
         int score = (grades * 100) / totalQuestions;
 
         quiz.getStudentScores().put(studentId, score);
-        String feedback  = generateFeedback(score, totalQuestions);
+        String feedback  = generateFeedback(score);
         saveQuizzesToJsonFile();
 
         Map<String , Object> res = new HashMap<>();
         res.put("feedback", feedback);
         res.put("score", score);
-        res.put("randomQuestions", randomQuestions);
+        res.put("Questions", questions);
 
         return res;
     }
@@ -268,9 +264,6 @@ public class QuizService {
         validateInstructorForCourse(instructorId, courseTitle);
 
         List<Quiz> quizzes = instructorQuizzes.getOrDefault(instructorId, new ArrayList<>());
-
-        if (quizzes.isEmpty())
-            throw new IllegalArgumentException("Quiz not found with ID: " + instructorId);
 
         Map<Integer, Map<String , Integer>> studentGrades  = new HashMap<>();
 
