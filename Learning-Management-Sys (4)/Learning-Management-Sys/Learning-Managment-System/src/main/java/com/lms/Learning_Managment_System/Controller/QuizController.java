@@ -1,12 +1,9 @@
 package com.lms.Learning_Managment_System.Controller;
 
 import com.lms.Learning_Managment_System.Model.Quiz;
-import com.lms.Learning_Managment_System.Model.User;
-import com.lms.Learning_Managment_System.Model.course;
 import com.lms.Learning_Managment_System.Service.QuizService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
@@ -28,7 +25,7 @@ public class QuizController {
 
     // -----------------------------------------------------------------------------
 
-    private ResponseEntity<?> validateInstructorForCourse(int instructorId) {
+    private ResponseEntity<?> validateInstructorForLogin(int instructorId) {
         List<Integer> instr = userController.getInstructorsId();
 
         boolean found = false;
@@ -52,7 +49,7 @@ public class QuizController {
     public ResponseEntity<?> addQuiz(@PathVariable("instructorId") int instructorId,
                                      @PathVariable("courseTitle") String courseTitle,
                                      @RequestBody Quiz quiz) {
-        ResponseEntity<?> validationResponse = validateInstructorForCourse(instructorId);
+        ResponseEntity<?> validationResponse = validateInstructorForLogin(instructorId);
         if (validationResponse != null)
             return validationResponse;
 
@@ -73,8 +70,9 @@ public class QuizController {
                                      @PathVariable("courseTitle") String courseTitle,
                                      @PathVariable("quizId") String quizId) {
         // Validate instructor access
-        ResponseEntity<?> validationResponse = validateInstructorForCourse(instructorId);
-        if (validationResponse != null) return validationResponse;
+        ResponseEntity<?> validationResponse = validateInstructorForLogin(instructorId);
+        if (validationResponse != null)
+            return validationResponse;
 
         try {
             Quiz quiz = quizService.getQuizById(courseTitle, quizId, instructorId);
@@ -95,8 +93,9 @@ public class QuizController {
     @GetMapping("/{instructorId}/{courseTitle}")
     public ResponseEntity<?> getQuizzesByInstructor(@PathVariable("instructorId") int instructorId,
                                                     @PathVariable("courseTitle") String courseTitle) {
-        ResponseEntity<?> validationResponse = validateInstructorForCourse(instructorId);
-        if (validationResponse != null) return validationResponse;
+        ResponseEntity<?> validationResponse = validateInstructorForLogin(instructorId);
+        if (validationResponse != null)
+            return validationResponse;
 
         try {
             List<Quiz> quizzes = quizService.getQuizzesForInstructor(instructorId, courseTitle);
@@ -114,8 +113,9 @@ public class QuizController {
     public ResponseEntity<?> deleteQuiz(@PathVariable("courseTitle") String courseTitle,
                                         @PathVariable("instructorId") int instructorId,
                                         @PathVariable("quizId") String quizId) {
-        ResponseEntity<?> validationResponse = validateInstructorForCourse(instructorId);
-        if (validationResponse != null) return validationResponse;
+        ResponseEntity<?> validationResponse = validateInstructorForLogin(instructorId);
+        if (validationResponse != null)
+            return validationResponse;
 
         try {
             quizService.deleteQuiz(courseTitle, quizId, instructorId);
@@ -132,8 +132,9 @@ public class QuizController {
     @DeleteMapping("/{courseTitle}/{instructorId}/clearQuizzes")
     public ResponseEntity<?> clearQuizzes(@PathVariable("courseTitle") String courseTitle,
                                           @PathVariable("instructorId") int instructorId) {
-        ResponseEntity<?> validationResponse = validateInstructorForCourse(instructorId);
-        if (validationResponse != null) return validationResponse;
+        ResponseEntity<?> validationResponse = validateInstructorForLogin(instructorId);
+        if (validationResponse != null)
+            return validationResponse;
 
         try {
             quizService.clearQuizzesForCourse(courseTitle, instructorId);
@@ -160,7 +161,7 @@ public class QuizController {
                         .body("No score found for student ID: " + studentId);
             }
 
-            String feedback = quizService.generateFeedback(score, quiz.getQuestions().size());
+            String feedback = quizService.generateFeedback(score);
             return new ResponseEntity<>(Map.of("feedback", feedback, "score", score), HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -201,7 +202,7 @@ public class QuizController {
                 return new ResponseEntity<>( "No score or feedback found for student ID: " + studentId , HttpStatus.NOT_FOUND);
 
             int score = quiz.getStudentScores().get(studentId);
-            String feedback = quizService.generateFeedback(score, quiz.getQuestions().size());
+            String feedback = quizService.generateFeedback(score);
             return ResponseEntity.ok(Map.of("score", score, "feedback", feedback));
         }
         catch (IllegalArgumentException e) {
