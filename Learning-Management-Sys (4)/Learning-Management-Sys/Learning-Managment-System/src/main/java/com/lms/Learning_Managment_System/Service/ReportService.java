@@ -4,6 +4,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -15,20 +16,20 @@ import java.util.Map;
     public class ReportService {
 
     private static final String BASE_DIRECTORY = Paths.get(System.getProperty("user.dir"), "generated-reports").toString();
+
     public ReportService() {
-        java.io.File directory = new java.io.File(BASE_DIRECTORY);
+        File directory = new File(BASE_DIRECTORY);
         if (!directory.exists()) {
             directory.mkdirs();
         }
     }
 
     private void saveWorkbook(Workbook workbook, String filePath) throws IOException {
-        try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
-            workbook.write(fileOut);
-            System.out.println("Report saved in project directory: " + filePath);
-        } finally {
-            workbook.close();
-        }
+        FileOutputStream fileOut = new FileOutputStream(filePath) ;
+        workbook.write(fileOut);
+        System.out.println("Report saved in project directory: " + filePath);
+
+        workbook.close();
     }
 
     public String generateGradesReport(List<Map<String, Object>> gradesData, String fileName) throws IOException {
@@ -43,7 +44,7 @@ import java.util.Map;
         headerRow.createCell(3).setCellValue("Quiz ID");
         headerRow.createCell(4).setCellValue("Grade");
 
-        // Populate rows with grades data
+        // values rows
         int rowIndex = 1;
         for (Map<String, Object> record : gradesData) {
             Row row = sheet.createRow(rowIndex++);
@@ -64,6 +65,7 @@ import java.util.Map;
     // -------------------------------------------------
 
     public String generateAttendanceReport(List<Map<String, Object>> attendanceData, String fileName) throws IOException {
+        //                                      student Data
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Attendance Report");
 
@@ -72,16 +74,18 @@ import java.util.Map;
         headerRow.createCell(0).setCellValue("Student Email");
         headerRow.createCell(1).setCellValue("First Name");
         headerRow.createCell(2).setCellValue("Last Name");
-        headerRow.createCell(3).setCellValue("Attendance");
+        headerRow.createCell(3).setCellValue("lesson");
+        headerRow.createCell(4).setCellValue("Attendance");
 
-        // Populate rows with attendance data
+        // values rows
         int rowIndex = 1;
         for (Map<String, Object> record : attendanceData) {
             Row row = sheet.createRow(rowIndex++);
             row.createCell(0).setCellValue((String) record.get("email"));
             row.createCell(1).setCellValue((String) record.get("firstName"));
             row.createCell(2).setCellValue((String) record.get("lastName"));
-            row.createCell(3).setCellValue((Boolean) record.get("attendance") ? "Attended" : "Absent");
+            row.createCell(3).setCellValue((String) record.get("lesson"));
+            row.createCell(4).setCellValue((Boolean) record.get("attendance") ? "Attended" : "Absent");
         }
 
         // Save the file
@@ -90,7 +94,7 @@ import java.util.Map;
         return filePath;
     }
 
-    public String generateAssignmentGradesReport(List<Map<String, Object>> assignmentGradesData, String fileName) throws IOException {
+    public String generateAssignmentGradesReport(List<Map<String, String>> assignmentGradesData, String fileName) throws IOException {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Assignment Grades Report");
 
@@ -103,16 +107,16 @@ import java.util.Map;
         headerRow.createCell(4).setCellValue("Grade");
         headerRow.createCell(5).setCellValue("Feedback");
 
-        // Populate rows with assignment grades data
+        // values row
         int rowIndex = 1;
-        for (Map<String, Object> record : assignmentGradesData) {
+        for (Map<String, String> record : assignmentGradesData) {
             Row row = sheet.createRow(rowIndex++);
-            row.createCell(0).setCellValue((String) record.get("email"));
-            row.createCell(1).setCellValue((String) record.get("firstName"));
-            row.createCell(2).setCellValue((String) record.get("lastName"));
-            row.createCell(3).setCellValue((String) record.get("assignmentId"));
-            row.createCell(4).setCellValue((String) record.get("grade")); // Assuming grade is String
-            row.createCell(5).setCellValue((String) record.get("feedback"));
+            row.createCell(0).setCellValue(record.get("email"));
+            row.createCell(1).setCellValue(record.get("firstName"));
+            row.createCell(2).setCellValue(record.get("lastName"));
+            row.createCell(3).setCellValue(record.get("assignmentId"));
+            row.createCell(4).setCellValue(record.get("grade")); // Assuming grade is String
+            row.createCell(5).setCellValue(record.get("feedback"));
         }
 
         // Save the file
