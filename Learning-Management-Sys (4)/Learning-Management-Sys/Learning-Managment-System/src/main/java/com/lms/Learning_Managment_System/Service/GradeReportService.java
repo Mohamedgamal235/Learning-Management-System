@@ -25,7 +25,7 @@ public class GradeReportService {
     private AssignmentService assignmentService;
 
     public String generateGradeReportForCourse(String courseTitle, int instructorId, String fileName) throws IOException {
-        quizService.validateInstructorForCourse(instructorId , courseTitle);
+        //   stuID        quizId    grade
         Map<Integer , Map<String  , Integer>> studentGrades = quizService.getAllStudentGradesForCourse(courseTitle , instructorId);
 
         List<Map<String , Object>> gradesData = new ArrayList<>();
@@ -58,6 +58,7 @@ public class GradeReportService {
 
     public String generateAttendanceReportForLessons(String fileName) throws IOException {
         Map<String , List<String>> attendanceData = attendenceService.getAttendanceInfo();
+        // lesson  ,  emails
 
         List<Map<String , Object>> attendanceRecords = new ArrayList<>();
 
@@ -75,7 +76,7 @@ public class GradeReportService {
                     recordAttendance.put("email" , student.getEmail());
                     recordAttendance.put("firstName" , student.getFirstName());
                     recordAttendance.put("lastName" , student.getLastName());
-                    recordAttendance.put(lesson , lesson) ;
+                    recordAttendance.put("lesson" , lesson) ;
                     recordAttendance.put("attendance" , true) ;
                     attendanceRecords.add(recordAttendance);
                 }
@@ -86,11 +87,11 @@ public class GradeReportService {
     }
 
 
-    public String generateAssignmentGradesReport(String courseTitle, int instructorId, String fileName) throws IOException {
-        assignmentService.validateCourse(courseTitle);
+    public String generateAssignmentGradesReport(String courseTitle, String fileName) throws IOException {
 
         List<Assignment> assignments = assignmentService.getAssignments(courseTitle);
-        List<Map<String, Object>> assignmentGradesData = new ArrayList<>();
+        List<Map<String, String>> assignmentGradesData = new ArrayList<>();
+        // list of strudent
 
         for (Assignment assignment : assignments) {
             for (assignmentSubmission submission : assignment.getSubmissions()) {
@@ -100,7 +101,7 @@ public class GradeReportService {
                         .findFirst().orElse(null);
 
                 if (student != null) {
-                    Map<String, Object> record = new HashMap<>();
+                    Map<String, String> record = new HashMap<>(); // recode student data
                     record.put("email", student.getEmail());
                     record.put("firstName", student.getFirstName());
                     record.put("lastName", student.getLastName());
