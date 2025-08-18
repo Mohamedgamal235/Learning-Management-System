@@ -1,0 +1,51 @@
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio cache/options
+.vs/
+
+# IIS Express settings
+*.vspscc
+*.vssscc
+*.dbmdl
+*.dbproj.schemaview
+
+# Rider/JetBrains IDE
+.idea/
+*.sln.iml
+
+# Logs
+*.log
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# Backup & temporary files
+*.bak
+*.tmp
+*.temp
+
+# Publish output
+publish/
+*.Publish.xml
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# Entity Framework Migrations
+*.designer.cs
+
+# Others
+*.swp
+*.DS_Store
+Thumbs.db
