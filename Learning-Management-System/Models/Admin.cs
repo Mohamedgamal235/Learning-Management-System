@@ -2,6 +2,6 @@
 {
     public class Admin : User
     {
-        public string AccessLevel {get ; set; } 
+        public string? AccessLevel {get ; set; } 
     }
 }

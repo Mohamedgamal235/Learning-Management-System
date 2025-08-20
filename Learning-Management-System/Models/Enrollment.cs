@@ -10,8 +10,8 @@
 
         public DateTime EnrolledAt { get; set; }
         public double ProgressPercent { get; set; }
-        public double Grade { get; set; }
-        public DateTime LastAccessed {  get; set; } 
+        public double? Grade { get; set; }
+        public DateTime? LastAccessed {  get; set; } 
         public int AttendanceCount { get; set; }
     }
 }
