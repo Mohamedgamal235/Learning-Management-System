@@ -7,6 +7,9 @@
         public string Description { get; set; }
         public TimeSpan Credits { get; set; }
         public DateTime CreateAt { get; set; }
+        public CourseCategory CourseCategory { get; set; }
+        public CourseLevel CourseLevel { get; set; }
+
 
         public Guid InstructorId { get; set; }
         public virtual Instructor? Instructor { get; set; }
