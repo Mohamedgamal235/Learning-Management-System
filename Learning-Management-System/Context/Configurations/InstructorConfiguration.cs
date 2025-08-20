@@ -1,4 +1,6 @@
 ﻿using Learning_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Learning_Management_System.Context.Configurations
 {
@@ -6,21 +8,15 @@ namespace Learning_Management_System.Context.Configurations
     {
         public void Configure(EntityTypeBuilder<Instructor> builder)
         {
-            builder.HasKey(i => i.UserId);
+            builder.Property(i => i.JopTitle).HasMaxLength(100);
+            builder.Property(i => i.Salary);
 
-            builder.Property(i => i.UserName).IsRequired()
-                .HasMaxLength(60);
-
-            builder.Property(i => i.Email).IsRequired()
-                .HasMaxLength(100);
-
-            builder.Property(i => i.Password).IsRequired().HasMaxLength(18);
-            builder.Property(i => i.ConfirmedPassword).IsRequired().HasMaxLength(18);
+            builder.HasCheckConstraint("CK_Instructor_SalaryPositive", "Salary IS NULL OR Salary > 0");
 
             builder.HasMany(i => i.Courses)
                 .WithOne(c => c.Instructor)
                 .HasForeignKey(c => c.InstructorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

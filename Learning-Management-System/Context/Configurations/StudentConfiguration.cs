@@ -1,4 +1,6 @@
 ﻿using Learning_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Learning_Management_System.Context.Configurations
 {
@@ -6,27 +8,19 @@ namespace Learning_Management_System.Context.Configurations
     {
         public void Configure(EntityTypeBuilder<Student> builder)
         {
-            builder.HasKey(i => i.UserId);
+            builder.Property(s => s.School).HasMaxLength(100);
+            builder.Property(s => s.Headline).HasMaxLength(200);
+            builder.Property(s => s.EnrollmentDate).IsRequired();
 
-            builder.Property(i => i.UserName).IsRequired()
-                .HasMaxLength(60);
-
-            builder.Property(i => i.Email).IsRequired()
-                .HasMaxLength(100);
-
-            builder.Property(s => s.EnrollmentDate);
-
-            builder.Property(i => i.Password).IsRequired().HasMaxLength(18);
-            builder.Property(i => i.ConfirmedPassword).IsRequired().HasMaxLength(18);
-            
+            // Relationships
             builder.HasMany(s => s.Submissions)
-                .WithOne(s => s.Student)
-                .HasForeignKey(s => s.StudentId)
+                .WithOne(sub => sub.Student)
+                .HasForeignKey(sub => sub.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(s => s.Enrollments)
-                .WithOne(s => s.Student)
-                .HasForeignKey(s => s.StudentId)
+                .WithOne(e => e.Student)
+                .HasForeignKey(e => e.StudentId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -1,4 +1,6 @@
 ﻿using Learning_Management_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Learning_Management_System.Context.Configurations
 {
@@ -14,7 +16,7 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(c => c.Credits).IsRequired();
             builder.Property(c => c.CreateAt).IsRequired();
 
-            builder.Property(c => c.CourseMaterials).IsRequired();
+            builder.Property(c => c.CourseCategory).IsRequired();
             builder.Property(c => c.CourseLevel).IsRequired();
 
             builder.HasOne(c => c.Instructor)
