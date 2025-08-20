@@ -5,7 +5,7 @@
         public Guid AssignmentId { get; set; }
         public string Title { get; set; }
         public string Instructions { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
         public DateTime Deadline { get; set; }
 
         public Guid CourseId {  get; set; }
