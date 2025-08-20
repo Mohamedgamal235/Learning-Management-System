@@ -35,6 +35,18 @@
         Advanced
     }
 
+    public enum FileType
+    {
+        Pdf,
+        Docx,
+        Pptx,
+        Zip,
+        Rar,
+        Txt,
+        Other
+    }
+
+
 
     public class Enums
     {
