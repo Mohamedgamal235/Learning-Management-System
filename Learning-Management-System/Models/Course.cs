@@ -5,7 +5,7 @@
         public Guid CourseId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
-        public int Credits { get; set; }
+        public TimeSpan Credits { get; set; }
         public DateTime CreateAt { get; set; }
 
         public Guid InstructorId { get; set; }
