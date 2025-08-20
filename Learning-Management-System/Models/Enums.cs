@@ -18,6 +18,24 @@
         Email,
         InApp
     }
+
+    public enum CourseCategory
+    {
+        Programming,
+        Mathematics,
+        Design,
+        Business,
+        Science
+    }
+
+    public enum CourseLevel
+    {
+        Beginner,
+        Intermediate,
+        Advanced
+    }
+
+
     public class Enums
     {
     }
