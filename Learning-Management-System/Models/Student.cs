@@ -2,8 +2,8 @@
 {
     public class Student : User
     {
-        public string School { get; set; }
-        public string Headline { get; set; }
+        public string? School { get; set; }
+        public string? Headline { get; set; }
         public DateTime EnorllmentDate { get; set; }
 
         public virtual List<Submission>? Submissions { get; set; }

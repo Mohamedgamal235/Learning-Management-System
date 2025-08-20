@@ -9,9 +9,10 @@
         public virtual Student? Student { get; set; }
         
         public string FilePath { get; set; }
-        public string AnswerText { get; set; }
+        public FileType FileType { get; set; }
+        public string? AnswerText { get; set; }
         public DateTime? SubmittedAt { get; set; }
         public double Grade { get; set; }
-        public string Feedback { get; set; }
+        public string? Feedback { get; set; }
     }
 }
