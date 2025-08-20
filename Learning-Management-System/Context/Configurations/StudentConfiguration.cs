@@ -14,13 +14,20 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(i => i.Email).IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(s => s.)
+            builder.Property(s => s.EnrollmentDate);
 
             builder.Property(i => i.Password).IsRequired().HasMaxLength(18);
             builder.Property(i => i.ConfirmedPassword).IsRequired().HasMaxLength(18);
-
-
             
+            builder.HasMany(s => s.Submissions)
+                .WithOne(s => s.Student)
+                .HasForeignKey(s => s.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(s => s.Enrollments)
+                .WithOne(s => s.Student)
+                .HasForeignKey(s => s.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
