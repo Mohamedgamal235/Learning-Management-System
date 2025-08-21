@@ -15,12 +15,20 @@ namespace Learning_Management_System.Models
         [DataType(DataType.Password)]
         [PasswordComplexity]
         public string Password { get; set; }
+
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Password not match")]
         public string ConfirmedPassword { get; set; }
 
+
+        [DataType(DataType.Url)]
+        [LinkedInUrl]
         public string? LinkedIn {  get; set; }
-        public string? PhotoPath { get; set; }
+
+        [DataType(DataType.Upload)]
+        public IFormFile? PhotoPath { get; set; }
+
+        [Required]
         public Role Role { get; set; }
 
         public virtual List<Notification>? Notifications { get; set; }
