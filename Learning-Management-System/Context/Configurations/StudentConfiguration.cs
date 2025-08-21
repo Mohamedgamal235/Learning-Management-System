@@ -12,7 +12,6 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(s => s.Headline).HasMaxLength(200);
             builder.Property(s => s.EnrollmentDate).IsRequired();
 
-            // Relationships
             builder.HasMany(s => s.Submissions)
                 .WithOne(sub => sub.Student)
                 .HasForeignKey(sub => sub.StudentId)
