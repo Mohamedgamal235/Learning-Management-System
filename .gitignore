@@ -49,3 +49,6 @@ _ReSharper*/
 *.swp
 *.DS_Store
 Thumbs.db
+
+# ASP.NET secrets
+secrets.json
