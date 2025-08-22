@@ -5,6 +5,8 @@ namespace Learning_Management_System.Context
 {
     public class LMSContext : DbContext
     {
+        public LMSContext(DbContextOptions<LMSContext> options) : base(options) { }
+
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Instructor> Instructors { get; set; }
         public DbSet<Student> Students { get; set; }
@@ -23,14 +25,6 @@ namespace Learning_Management_System.Context
         public DbSet<Submission> Submissions { get; set; }
         public DbSet<StudentAnswer> StudentAnswers { get; set; }
         public DbSet<Choice> Choices { get; set; }
-       
-        public LMSContext() : base() { }
-        public LMSContext(DbContextOptions<LMSContext> options) : base(options) { }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
