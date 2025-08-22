@@ -25,27 +25,27 @@ namespace Learning_Management_System.Context.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(c => c.Lessons)
-                .WithOne(l => l.Course)
+                .WithOne()
                 .HasForeignKey(l => l.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.CourseMaterials)
-                .WithOne(c => c.Course)
+                .WithOne()
                 .HasForeignKey(c => c.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.Quizzes)
-                .WithOne(q => q.Course)
+                .WithOne()
                 .HasForeignKey(c => c.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.Assignments)
-                .WithOne(a => a.Course)
+                .WithOne()
                 .HasForeignKey(c => c.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(c => c.Enrollments)
-                .WithOne(e => e.Course)
+                .WithOne()
                 .HasForeignKey(c => c.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
                 

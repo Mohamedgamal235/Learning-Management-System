@@ -12,12 +12,12 @@ namespace Learning_Management_System.Context.Configurations
 
             builder.Property(a => a.Title).IsRequired().HasMaxLength(100);
             builder.Property(a => a.Instructions).IsRequired().HasMaxLength(2000);
-            builder.Property(a => a.CreatedAt).IsRequired();
+            builder.Property(a => a.CreatedAt);
             builder.Property(a => a.Deadline).IsRequired();
             builder.Property(a => a.FilePath).HasMaxLength(500);
             builder.Property(a => a.FileType);
 
-            builder.HasCheckConstraint("CK_Assignment_DeadlineFuture", "Deadline > CreatedAt");
+            builder.HasCheckConstraint("CK_Assignment_DeadlineFuture", "Deadline > CreatedAt OR CreatedAt IS NULL");
 
             builder.HasOne(a => a.Course)
                 .WithMany(c => c.Assignments)

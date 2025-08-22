@@ -13,8 +13,8 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(c => c.ChoiceText).IsRequired().HasMaxLength(500);
             builder.Property(c => c.IsCorrect).IsRequired();
 
-            builder.HasOne(c => c.Question)
-                .WithMany()
+            builder.HasOne(c => c.MCQQuestion)
+                .WithMany(mq => mq.Choices)
                 .HasForeignKey(c => c.QuestionId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
