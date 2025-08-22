@@ -1,8 +1,9 @@
-﻿namespace Learning_Management_System.Repository
-{
-    public class AccountRepository
-    {
+﻿using Learning_Management_System.Repository.Interfaces;
 
-        public AccountRepository() { }
+namespace Learning_Management_System.Repository
+{
+    public class AccountRepository : IAccountRepository
+    {
+        
     }
 }
