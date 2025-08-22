@@ -1,3 +1,5 @@
+using Learning_Management_System.Context;
+
 namespace Learning_Management_System
 {
     public class Program
@@ -5,6 +7,11 @@ namespace Learning_Management_System
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            builder.Services.AddDbContext<LMSContext>(option => option.UseSqlServer(connectionString));
+
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
