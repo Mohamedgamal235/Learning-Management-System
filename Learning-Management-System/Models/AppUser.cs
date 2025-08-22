@@ -17,6 +17,7 @@ namespace Learning_Management_System.Models
         public string LastName { get; set; }
 
         [EmailAddress]
+        [RegularExpression(@"^[a-zA-Z0-9._%+-]+@gmail\.com$" , ErrorMessage = "Only Gmail Address is allowed.")]
         public string Email { get; set; }
 
         [DataType(DataType.Password)]
