@@ -1,6 +1,6 @@
 ﻿namespace Learning_Management_System.Models
 {
-    public class Student : User
+    public class Student : AppUser
     {
         public string? School { get; set; }
         public string? Headline { get; set; }

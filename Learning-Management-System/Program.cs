@@ -1,4 +1,6 @@
 using Learning_Management_System.Context;
+using Learning_Management_System.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace Learning_Management_System
 {
@@ -12,6 +14,13 @@ namespace Learning_Management_System
 
             builder.Services.AddDbContext<LMSContext>(option => option.UseSqlServer(connectionString));
 
+            builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>(option =>
+            {
+                option.Password.RequireLowercase = true; 
+                option.Password.RequireUppercase = true;
+                option.Password.RequireDigit = true;
+                option.Password.RequireNonAlphanumeric = true;
+            }).AddEntityFrameworkStores<LMSContext>().AddDefaultTokenProviders();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();

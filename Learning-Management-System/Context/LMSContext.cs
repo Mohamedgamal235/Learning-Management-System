@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Learning_Management_System.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Learning_Management_System.Context
 {
-    public class LMSContext : DbContext
+    public class LMSContext : IdentityDbContext<AppUser, IdentityRole<Guid> , Guid>
     {
         public LMSContext(DbContextOptions<LMSContext> options) : base(options) { }
 
@@ -28,6 +30,7 @@ namespace Learning_Management_System.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder); // important for Identity tables
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(LMSContext).Assembly);
         }
 
