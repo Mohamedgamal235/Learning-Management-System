@@ -46,6 +46,15 @@
         Other
     }
 
+    public enum VideoType
+    {
+        Mp4,
+        Avi,
+        Mkv,
+        Mov,
+        YouTube,
+        Vimeo
+    }
 
 
     public class Enums
