@@ -26,7 +26,7 @@ namespace Learning_Management_System.Models
         public string? LinkedIn {  get; set; }
 
         [DataType(DataType.Upload)]
-        public IFormFile? PhotoPath { get; set; }
+        public string? PhotoPath { get; set; }
 
         [Required]
         public Role Role { get; set; }

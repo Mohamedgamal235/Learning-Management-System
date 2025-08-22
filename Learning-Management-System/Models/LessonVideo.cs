@@ -1,4 +1,6 @@
-﻿namespace Learning_Management_System.Models
+﻿using Learning_Management_System.Models.Attributes;
+
+namespace Learning_Management_System.Models
 {
     public class LessonVideo
     {
