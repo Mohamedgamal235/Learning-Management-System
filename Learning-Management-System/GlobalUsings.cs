@@ -2,3 +2,4 @@
 global using Microsoft.EntityFrameworkCore.Metadata.Builders;
 global using Learning_Management_System.Models;
 global using Microsoft.AspNetCore.Identity;
+global using Learning_Management_System.ViewModel;
