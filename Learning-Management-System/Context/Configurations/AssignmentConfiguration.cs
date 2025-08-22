@@ -17,17 +17,15 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(a => a.FilePath).HasMaxLength(500);
             builder.Property(a => a.FileType);
 
-            builder.HasCheckConstraint("CK_Assignment_DeadlineFuture", "Deadline > CreatedAt OR CreatedAt IS NULL");
-
             builder.HasOne(a => a.Course)
                 .WithMany(c => c.Assignments)
                 .HasForeignKey(a => a.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(a => a.Submissions)
                 .WithOne(s => s.Assignment)
                 .HasForeignKey(s => s.AssignmentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

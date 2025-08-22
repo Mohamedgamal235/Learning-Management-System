@@ -16,12 +16,12 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasOne(a => a.Lesson)
                 .WithMany(l => l.Attendances)
                 .HasForeignKey(a => a.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(a => a.Student)
                 .WithMany()
                 .HasForeignKey(a => a.StudentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

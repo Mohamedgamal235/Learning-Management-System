@@ -19,17 +19,15 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(cm => cm.UpdloadedAt).IsRequired();
             builder.Property(cm => cm.UploadedBy).IsRequired();
 
-            builder.HasCheckConstraint("CK_CourseMaterial_FileSizePositive", "FileSize > 0");
-
             builder.HasOne(cm => cm.Lesson)
                 .WithMany(l => l.CourseMaterials)
                 .HasForeignKey(cm => cm.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(cm => cm.Course)
                 .WithMany(c => c.CourseMaterials)
                 .HasForeignKey(cm => cm.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

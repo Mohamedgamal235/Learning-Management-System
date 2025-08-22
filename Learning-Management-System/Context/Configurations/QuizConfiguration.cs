@@ -16,28 +16,25 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(q => q.EndDateTime).IsRequired();
             builder.Property(q => q.DurationMinutes).IsRequired();
 
-
-            builder.HasCheckConstraint("CK_Quiz_EndAfterStart", "EndDateTime > StartDateTime");
-
             builder.HasOne(q => q.Course)
                 .WithMany(c => c.Quizzes)
                 .HasForeignKey(q => q.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(q => q.MCQQuestions)
                 .WithOne(mq => mq.Quiz)
                 .HasForeignKey(mq => mq.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(q => q.TrueFalseQuestions)
                 .WithOne(tf => tf.Quiz)
                 .HasForeignKey(tf => tf.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(q => q.QuizAttempts)
                 .WithOne(qa => qa.Quiz)
                 .HasForeignKey(qa => qa.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

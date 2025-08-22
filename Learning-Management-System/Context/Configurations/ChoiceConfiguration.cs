@@ -16,7 +16,7 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasOne(c => c.MCQQuestion)
                 .WithMany(mq => mq.Choices)
                 .HasForeignKey(c => c.QuestionId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -23,7 +23,7 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasOne(lv => lv.Lesson)
                 .WithMany(l => l.LessonVideos)
                 .HasForeignKey(lv => lv.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

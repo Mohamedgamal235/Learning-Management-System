@@ -19,22 +19,22 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasOne(l => l.Course)
                 .WithMany(c => c.Lessons)
                 .HasForeignKey(l => l.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(l => l.Attendances)
                 .WithOne(a => a.Lesson)
                 .HasForeignKey(a => a.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(l => l.LessonVideos)
                 .WithOne(lv => lv.Lesson)
                 .HasForeignKey(lv => lv.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(l => l.CourseMaterials)
                 .WithOne(cm => cm.Lesson)
                 .HasForeignKey(cm => cm.LessonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -22,12 +22,12 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasOne(qa => qa.Quiz)
                 .WithMany(q => q.QuizAttempts)
                 .HasForeignKey(qa => qa.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(qa => qa.StudentAnswers)
                 .WithOne(sa => sa.QuizAttempt)
                 .HasForeignKey(sa => sa.QuizAttemptId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

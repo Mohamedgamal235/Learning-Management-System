@@ -11,7 +11,7 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(i => i.JopTitle).HasMaxLength(100);
             builder.Property(i => i.Salary);
 
-            builder.HasCheckConstraint("CK_Instructor_SalaryPositive", "Salary IS NULL OR Salary > 0");
+           
 
             builder.HasMany(i => i.Courses)
                 .WithOne(c => c.Instructor)

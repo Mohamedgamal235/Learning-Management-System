@@ -19,10 +19,10 @@ namespace Learning_Management_System.Context.Configurations
                 .HasValue<MCQQuestion>(QuestionType.MCQ)
                 .HasValue<TrueFalseQuestion>(QuestionType.TrueFalse);
 
-            builder.HasOne(q => q.Quiz)
+            builder.HasOne<Quiz>()
                 .WithMany()
                 .HasForeignKey(q => q.QuizId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

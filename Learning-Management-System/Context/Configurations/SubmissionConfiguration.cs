@@ -17,18 +17,17 @@ namespace Learning_Management_System.Context.Configurations
             builder.Property(s => s.Grade).HasDefaultValue(0);
             builder.Property(s => s.Feedback).HasMaxLength(1000);
 
-
             builder.HasCheckConstraint("CK_Submission_GradeRange", "Grade >= 0 AND Grade <= 100");
 
             builder.HasOne(s => s.Assignment)
                 .WithMany(a => a.Submissions)
                 .HasForeignKey(s => s.AssignmentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(s => s.Student)
                 .WithMany(st => st.Submissions)
                 .HasForeignKey(s => s.StudentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
