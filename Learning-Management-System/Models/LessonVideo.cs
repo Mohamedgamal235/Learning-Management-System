@@ -4,6 +4,8 @@
     {
         public Guid LessonVideoId { get; set; }
         public string Title { get; set; }
+
+        [ValidationVideo]
         public string VideoUrl { get; set; }
         public VideoType VideoType { get; set; }
         public TimeSpan Duration { get; set; }

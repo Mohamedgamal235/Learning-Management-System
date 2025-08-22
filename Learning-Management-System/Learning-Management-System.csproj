@@ -21,8 +21,8 @@
 
   <ItemGroup>
     <Folder Include="Context\Configurations\" />
-    <Folder Include="Repository\Interfaces\" />
     <Folder Include="Service\Interfaces\" />
+    <Folder Include="Repository\Interfaces\" />
   </ItemGroup>
 
 </Project>
