@@ -1,10 +1,13 @@
-﻿namespace Learning_Management_System.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Learning_Management_System.Models
 {
     public class Course
     {
         public Guid CourseId { get; set; }
+
         public string Title { get; set; }
-        public string Description { get; set; }
+        public string? Description { get; set; }
         public TimeSpan Credits { get; set; }
         public DateTime CreateAt { get; set; }
         public CourseCategory CourseCategory { get; set; }
