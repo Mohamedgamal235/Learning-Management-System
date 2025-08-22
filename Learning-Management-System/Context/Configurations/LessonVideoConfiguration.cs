@@ -11,7 +11,7 @@ namespace Learning_Management_System.Context.Configurations
             builder.HasKey(lv => lv.LessonVideoId);
 
             builder.Property(lv => lv.Title).IsRequired().HasMaxLength(100);
-            builder.Property(lv => lv.VideoUrl).HasMaxLength(500);
+            builder.Property(lv => lv.VideoUrl).HasMaxLength(500).IsRequired();
             builder.Property(lv => lv.Duration).IsRequired();
             builder.Property(lv => lv.OrderIndex).IsRequired();
             builder.Property(lv => lv.UploadedAt).IsRequired();
