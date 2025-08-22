@@ -5,10 +5,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Learning_Management_System.Models
 {
-    public abstract class User : IdentityUser<Guid>
+    public abstract class AppUser : IdentityUser<Guid>
     {
-        public Guid UserId { get; set; }
-        public string UserName { get; set; }
+        [Required]
+        public string FirstName { get; set; }
+
+        [Required]
+        public string MiddelName { get; set; }
+
+        [Required]
+        public string LastName { get; set; }
 
         [EmailAddress]
         public string Email { get; set; }

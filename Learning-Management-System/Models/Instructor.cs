@@ -1,6 +1,6 @@
 ﻿namespace Learning_Management_System.Models
 {
-    public class Instructor : User
+    public class Instructor : AppUser
     {
         public string? JopTitle { get; set; }
         public double? Salary { get; set; }  

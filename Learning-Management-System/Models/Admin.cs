@@ -1,6 +1,6 @@
 ﻿namespace Learning_Management_System.Models
 {
-    public class Admin : User
+    public class Admin : AppUser
     {
         public string? AccessLevel {get ; set; } 
     }
