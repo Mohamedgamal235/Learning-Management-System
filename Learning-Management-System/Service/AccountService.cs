@@ -20,7 +20,7 @@ namespace Learning_Management_System.Service
 
             var passwordCheck = await accountRepository.PasswordSignInAsync(user, login.Password);
             if (!passwordCheck.Succeeded)
-                return passwordCheck;
+                return SignInResult.Failed;
 
             await accountRepository.SignInAsync(user, login.RememberMe); // create on cookie 
 
