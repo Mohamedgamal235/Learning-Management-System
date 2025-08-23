@@ -1,5 +1,6 @@
 ﻿using Learning_Management_System.Repository.Interfaces;
 using Learning_Management_System.Service.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 namespace Learning_Management_System.Service
 {
@@ -14,9 +15,16 @@ namespace Learning_Management_System.Service
         public async Task<SignInResult> LoginAsync(LoginModel login)
         {
             var user = await accountRepository.FindByEmailAsync(login.Email);
-            if (user == null) 
+            if (user == null)
                 return SignInResult.Failed;
-            return await accountRepository.PasswordSignInAsync(user , login.Password , login.RememberMe);
+
+            var passwordCheck = await accountRepository.PasswordSignInAsync(user, login.Password);
+            if (!passwordCheck.Succeeded)
+                return passwordCheck;
+
+            await accountRepository.SignInAsync(user, login.RememberMe); // create on cookie 
+
+            return SignInResult.Success;
         }
 
         public async Task LogoutAsync()
@@ -69,6 +77,6 @@ namespace Learning_Management_System.Service
                     await accountRepository.AddInstructorAsync(instructor);
             }
             return result; 
-        }
+        } 
     }
 }

@@ -1,5 +1,9 @@
 using Learning_Management_System.Context;
 using Learning_Management_System.Models;
+using Learning_Management_System.Repository;
+using Learning_Management_System.Repository.Interfaces;
+using Learning_Management_System.Service;
+using Learning_Management_System.Service.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace Learning_Management_System
@@ -21,6 +25,9 @@ namespace Learning_Management_System
                 option.Password.RequireDigit = true;
                 option.Password.RequireNonAlphanumeric = true;
             }).AddEntityFrameworkStores<LMSContext>().AddDefaultTokenProviders();
+
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
