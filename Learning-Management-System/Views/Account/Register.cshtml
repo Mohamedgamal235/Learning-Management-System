@@ -1,13 +1,11 @@
 ﻿@model RegisterModel
 
 @{
-    ViewData["Title"] = "FormAccount";
-    ViewBag.Title = "SignUp";
+    ViewData["Title"] = "SignUp";
+    Layout = "FormAccount";
 }
 
-<h1>Register</h1>
-
-<form asp-action="Register" asp-controller="Account" method="post">
+<form asp-action="SaveRegister" asp-controller="Account" method="post">
     <div class="form-header">
         <h2>create your accout</h2>
         <p>join thousands of learners from around the world</p>
@@ -57,8 +55,8 @@
             </div>
         </div>
     </div>
-    <div class="btnSubmit">
-        <input type="submit" value="Create" />
+    <div >
+        <input class="btnSubmit" type="submit" value="Create" />
     </div>
     <p>already have an account?<span>log in</span></p>
 </form>
