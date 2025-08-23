@@ -14,6 +14,10 @@ namespace Learning_Management_System.Controllers
             this.accountService = accountService;
         }
 
+        // ------------------------------------
+        // --------------- Register -----------
+        // ------------------------------------
+
         [HttpGet]
         public IActionResult Register(RegisterModel registerModel)
         {
@@ -43,10 +47,38 @@ namespace Learning_Management_System.Controllers
             return View("Register", registerModel);
         }
 
+        // ------------------------------------
+        // --------------- Log in -------------
+        // ------------------------------------
+
         [HttpGet]
         public IActionResult Login(LoginModel loginModel)
         {
             return View(loginModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveLogin(LoginModel loginModel)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await accountService.LoginAsync(loginModel);
+                if (result != Microsoft.AspNetCore.Identity.SignInResult.Failed)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
+            return View("Login" , loginModel);
+        }
+
+        // ------------------------------------
+        // --------------- Log Out ------------
+        // ------------------------------------
+
+        public async Task<IActionResult> LogOut()
+        {
+            await accountService.LogoutAsync();
+            return RedirectToAction("Login");
         }
     }
 }
