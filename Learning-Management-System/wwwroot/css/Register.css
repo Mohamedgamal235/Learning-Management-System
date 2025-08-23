@@ -1,0 +1,109 @@
+﻿body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: capitalize;
+}
+
+form {
+    margin-top: 10px;
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+    border-radius: 10px;
+    padding: 5px 0 5px 20px;
+    gap: 10px;
+}
+
+    form > div,
+    button {
+        width: 94%;
+    }
+
+.btnSubmit {
+    padding: 10px;
+    background-color: black;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+}
+
+.full-name > div {
+    width: calc(95% / 3);
+}
+
+form div.full-name {
+    display: flex;
+    gap: 10px;
+}
+
+.full-name > div,
+.user-email,
+.user-pass,
+.confirm-pass,
+.user-role {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid gray;
+}
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+        outline: none;
+    }
+
+.user-role .all-roles {
+    display: flex;
+    gap: 10px;
+}
+
+.all-roles p {
+    opacity: 0.5;
+}
+
+.all-roles > div {
+    padding: 10px;
+    border: 1px solid gray;
+    border-radius: 8px;
+}
+
+.form-header {
+    text-align: center;
+}
+
+    .form-header p {
+        opacity: 0.5;
+    }
+
+.lines {
+    display: flex;
+    gap: 4px;
+}
+
+    .lines span {
+        display: block;
+        width: calc(95% / 3);
+    }
+
+        .lines span:first-child {
+            height: 2px;
+            background-color: black;
+        }
+
+        .lines span:not(:first-child) {
+            height: 2px;
+            background-color: black;
+            opacity: 0.3;
+        }
+
+form > p {
+    text-align: center;
+}
