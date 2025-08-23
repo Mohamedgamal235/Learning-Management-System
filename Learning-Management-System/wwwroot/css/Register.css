@@ -7,27 +7,39 @@
 
 form {
     margin-top: 10px;
-    width: 450px;
+    width: 400px;
     display: flex;
     flex-direction: column;
     border: 1px solid black;
     border-radius: 10px;
-    padding: 5px 0 5px 20px;
+    padding: 5px 0 5px 15px;
     gap: 10px;
 }
 
     form > div,
-    button {
-        width: 94%;
+    input[type='submit'] {
+        width: 96%;
     }
 
-.btnSubmit {
+
+input[type='submit'] {
     padding: 10px;
     background-color: black;
     color: #fff;
     border: none;
     border-radius: 5px;
+    width: 100% ;
 }
+    input[type='submit']:hover, input[type="radio"]:hover{
+        cursor: pointer;
+    }
+.student div label {
+    cursor: pointer;
+}
+.instructor div label {
+    cursor: pointer;
+}
+
 
 .full-name > div {
     width: calc(95% / 3);
@@ -48,6 +60,7 @@ form div.full-name {
     gap: 10px;
 }
 
+input[type="email"],
 input[type="text"],
 input[type="password"] {
     padding: 8px;
@@ -55,6 +68,7 @@ input[type="password"] {
     border: 1px solid gray;
 }
 
+    input[type="email"]:focus,
     input[type="text"]:focus,
     input[type="password"]:focus {
         outline: none;
