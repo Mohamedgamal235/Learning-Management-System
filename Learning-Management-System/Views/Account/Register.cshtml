@@ -1,62 +1,67 @@
 ﻿@model RegisterModel
 
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "FormAccount";
+    ViewBag.Title = "SignUp";
 }
 
 <h1>Register</h1>
 
-<h4>RegisterModel</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Register" asp-controller="Account" method="post">
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="FirstName" class="control-label"></label>
-                <input asp-for="FirstName" value="@Model?.FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MiddelName" class="control-label"></label>
-                <input asp-for="MiddelName"value="@Model?.MiddelName" class="form-control" />
-                <span asp-validation-for="MiddelName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LastName" class="control-label"></label>
-                <input asp-for="LastName" value="@Model?.LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" value="@Model?.Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Password" class="control-label"></label>
-                <input asp-for="Password" value="@Model?.Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ConfirmedPassword" class="control-label"></label>
-                <input asp-for="ConfirmedPassword" value="@Model?.ConfirmedPassword" class="form-control" />
-                <span asp-validation-for="ConfirmedPassword" class="text-danger"></span>
-            </div>
-            @* <div class="form-group">
-                <label asp-for="Role" class="control-label"></label>
-                <input asp-for="Role" class="form-control" />
-                <span asp-validation-for="Role" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Register" asp-controller="Account" method="post">
+    <div class="form-header">
+        <h2>create your accout</h2>
+        <p>join thousands of learners from around the world</p>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div class="full-name">
+        <div class="Fname">
+            <label asp-for="FirstName">First Name</label>
+            <input asp-for="FirstName" placeholder="Enter First Name" />
+        </div>
+        <div class="Mname">
+            <label asp-for="MiddelName">Middle Name</label>
+            <input asp-for="MiddelName" placeholder="Enter Middel Name" />
+        </div>
+        <div class="Lname">
+            <label asp-for="LastName">Last Name</label>
+            <input asp-for="LastName" placeholder="Enter Last Name" />
+        </div>
+    </div>
+    <div class="user-email">
+        <label asp-for="Email">Email</label>
+        <input asp-for="Email" type="email" placeholder="Enter your Email address" />
+    </div>
+    <div class="user-pass">
+        <label asp-for="Password">password</label>
+        <input type="password" asp-for="Password" placeholder="Create a password" />
+    </div>
+    <div class="confirm-pass">
+        <label asp-for="ConfirmedPassword">Confirm Password</label>
+        <input type="password" asp-for="ConfirmedPassword" placeholder="Confirm your password" />
+    </div>
+    <div class="user-role">
+        <label>i want to register as</label>
+        <div class="all-roles">
+            <div class="student">
+                <div>
+                    <input type="radio" asp-for="Role" value="Student" id="std" name="role" />
+                    <label for="std">Student</label>
+                </div>
+                <p>Take courses and learn new skills</p>
+            </div>
+            <div class="instructor">
+                <div>
+                    <input type="radio" name="role" value="Instructor" id="instru" />
+                    <label for="instru">Instructor</label>
+                </div>
+                <p>Create courses and teach students</p>
+            </div>
+        </div>
+    </div>
+    <div class="btnSubmit">
+        <input type="submit" value="Create" />
+    </div>
+    <p>already have an account?<span>log in</span></p>
+</form>
 
 @* @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
