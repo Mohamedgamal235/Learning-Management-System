@@ -18,7 +18,7 @@ namespace Learning_Management_System.Models
 
         [EmailAddress]
         [RegularExpression(@"^[a-zA-Z0-9._%+-]+@gmail\.com$" , ErrorMessage = "Only Gmail Address is allowed.")]
-        public string Email { get; set; }
+        public override string Email { get; set; }
 
         [DataType(DataType.Password)]
         [PasswordComplexity]
@@ -35,6 +35,8 @@ namespace Learning_Management_System.Models
 
         [DataType(DataType.Upload)]
         public string? PhotoPath { get; set; }
+
+        public override string UserName { get => Email; set => base.UserName = value; }
 
         [Required]
         public Role Role { get; set; }
